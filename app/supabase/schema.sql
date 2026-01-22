@@ -64,6 +64,25 @@ CREATE TABLE infos (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
+-- Tasks (To-do items)
+CREATE TABLE tasks (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  memo TEXT,
+  is_done BOOLEAN DEFAULT false NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Enable Row Level Security
+ALTER TABLE tags ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
+
+-- Create policies for tags (allow all operations for now - adjust as needed)
+CREATE POLICY "Allow all operations on tags" ON tags FOR ALL USING (true) WITH CHECK (true);
+
+-- Create policies for tasks (allow all operations for now - adjust as needed)
+CREATE POLICY "Allow all operations on tasks" ON tasks FOR ALL USING (true) WITH CHECK (true);
+
 -- Initial Data (Members)
 INSERT INTO profiles (name) VALUES ('青山'), ('浅田'), ('市川'), ('鬼澤');
 

@@ -1,10 +1,10 @@
 "use client";
 
-import * as React from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Wish } from "@/types/database";
-import { Trash2, ExternalLink, Copy, Check } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface WishFormProps {
@@ -16,37 +16,6 @@ interface WishFormProps {
 
 // Mock tags - これは後でSupabaseから取得する
 const AVAILABLE_TAGS = ["sightseeing", "food", "move", "Munich", "Vienna", "Puhga"];
-
-// Copy button component
-function CopyButton({ text }: { text: string }) {
-    const [copied, setCopied] = React.useState(false);
-
-    const handleCopy = async (e: React.MouseEvent) => {
-        e.preventDefault();
-        try {
-            await navigator.clipboard.writeText(text);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
-        } catch (err) {
-            console.error("Failed to copy:", err);
-        }
-    };
-
-    return (
-        <button
-            type="button"
-            onClick={handleCopy}
-            className="p-1.5 hover:bg-secondary/20 rounded transition-colors flex-shrink-0"
-            title="住所をコピー"
-        >
-            {copied ? (
-                <Check className="h-4 w-4 text-green-600" />
-            ) : (
-                <Copy className="h-4 w-4 text-muted-foreground hover:text-primary" />
-            )}
-        </button>
-    );
-}
 
 export function WishForm({ className, onSuccess, onDelete, initialData }: WishFormProps) {
     const [title, setTitle] = React.useState(initialData?.title || "");
@@ -138,20 +107,6 @@ export function WishForm({ className, onSuccess, onDelete, initialData }: WishFo
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
                 />
-                {address && (
-                    <div className="flex items-center gap-2 pt-1">
-                        <a
-                            href={`https://maps.google.com/?q=${encodeURIComponent(address)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-primary hover:text-primary/80 flex items-center gap-1 underline underline-offset-2"
-                        >
-                            <ExternalLink className="h-3.5 w-3.5 flex-shrink-0" />
-                            Open in Map
-                        </a>
-                        <CopyButton text={address} />
-                    </div>
-                )}
             </div>
 
             <div className="flex gap-2">

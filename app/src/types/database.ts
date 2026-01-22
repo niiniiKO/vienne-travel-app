@@ -65,3 +65,11 @@ export interface Info {
     content_text?: string | null
     created_at: string
 }
+
+export interface Task {
+    id: string
+    title: string
+    memo?: string | null
+    is_done: boolean
+    created_at: string
+}

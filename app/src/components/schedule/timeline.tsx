@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Schedule } from "@/types/database";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { MapPin, Utensils, Train, Info, ExternalLink, Copy, Check } from "lucide-react";
+import { MapPin, Utensils, Train, Info, Copy, Check } from "lucide-react";
 
 interface TimelineProps {
     items: Schedule[];
@@ -142,13 +142,11 @@ export function Timeline({ items, onEdit }: TimelineProps) {
                                             {item.address && (
                                                 <div className="flex items-center gap-1 mt-0.5">
                                                     <a
-                                                        href={`https://maps.google.com/?q=${encodeURIComponent(item.address)}`}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
+                                                        href={`geo:0,0?q=${encodeURIComponent(item.address)}`}
                                                         className="text-sm text-primary/80 hover:text-primary flex items-center gap-1 underline underline-offset-2"
                                                         onClick={(e) => e.stopPropagation()}
                                                     >
-                                                        <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                                                        <MapPin className="h-3 w-3 flex-shrink-0" />
                                                         <span className="line-clamp-1">{item.address}</span>
                                                     </a>
                                                     <CopyButton text={item.address} />

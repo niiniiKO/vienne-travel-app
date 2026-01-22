@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Calendar, Wallet, List, Menu } from "lucide-react";
+import { Calendar, Wallet, ListChecks, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function BottomNav() {
@@ -11,7 +11,7 @@ export function BottomNav() {
     const tabs = [
         { href: "/", label: "Schedule", icon: Calendar },
         { href: "/accounting", label: "Accounting", icon: Wallet },
-        { href: "/wishes", label: "Wishes", icon: List },
+        { href: "/wishes", label: "Tasks", icon: ListChecks },
         { href: "/info", label: "Info", icon: Menu },
     ];
 
