@@ -197,7 +197,7 @@ export default function Home() {
             variant="gold"
             size="sm"
             className="w-full shadow-sm"
-            onClick={() => openScheduleForm()}
+            onClick={() => openScheduleForm(undefined, currentDate.toISOString().split("T")[0])}
           >
             <Plus className="h-4 w-4 mr-1" />
             Add Schedule

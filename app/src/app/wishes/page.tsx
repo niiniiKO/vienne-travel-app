@@ -3,7 +3,7 @@
 import { Wish, Task } from "@/types/database";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, Plus, Calendar as CalendarIcon, MapPin, Copy, Check as CheckIcon } from "lucide-react";
+import { Check, Plus, Calendar as CalendarIcon, MapPin, Copy, Check as CheckIcon, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Modal } from "@/components/ui/modal";
@@ -214,22 +214,20 @@ export default function TasksWishesPage() {
                                         "transition-opacity cursor-pointer hover:shadow-md", 
                                         task.is_done && "opacity-60"
                                     )}
-                                    onClick={() => openEditTaskForm(task)}
+                                    onClick={() => toggleTaskDone(task.id)}
                                 >
                                     <CardContent className="p-4">
                                         <div className="flex items-start gap-3">
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    toggleTaskDone(task.id);
-                                                }}
+                                            {/* Visual Check Status */}
+                                            <div
                                                 className={cn(
                                                     "h-6 w-6 rounded-full border border-primary flex items-center justify-center transition-colors flex-shrink-0 mt-0.5",
                                                     task.is_done ? "bg-primary text-primary-foreground" : "text-transparent"
                                                 )}
                                             >
                                                 <Check className="h-4 w-4" />
-                                            </button>
+                                            </div>
+
                                             <div className="flex-1 min-w-0">
                                                 <h3 className={cn("font-medium text-lg leading-tight", task.is_done && "line-through text-muted-foreground")}>
                                                     {task.title}
@@ -240,6 +238,17 @@ export default function TasksWishesPage() {
                                                     </p>
                                                 )}
                                             </div>
+
+                                            {/* Edit Button */}
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    openEditTaskForm(task);
+                                                }}
+                                                className="p-1 hover:bg-secondary/20 rounded transition-colors text-muted-foreground hover:text-foreground flex-shrink-0"
+                                            >
+                                                <Pencil className="h-4 w-4" />
+                                            </button>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -277,23 +286,19 @@ export default function TasksWishesPage() {
                                         "transition-opacity cursor-pointer hover:shadow-md", 
                                         wish.status === "done" && "opacity-60"
                                     )}
-                                    onClick={() => openEditWishForm(wish)}
+                                    onClick={() => toggleWishStatus(wish.id)}
                                 >
                                     <CardContent className="p-4">
                                         <div className="flex items-start justify-between gap-3">
-                                            <div className="flex items-start gap-3 flex-1">
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        toggleWishStatus(wish.id);
-                                                    }}
+                                            <div className="flex items-start gap-3 flex-1 min-w-0">
+                                                <div
                                                     className={cn(
                                                         "h-6 w-6 rounded-full border border-primary flex items-center justify-center transition-colors flex-shrink-0 mt-0.5",
                                                         wish.status === "done" ? "bg-primary text-primary-foreground" : "text-transparent"
                                                     )}
                                                 >
                                                     <Check className="h-4 w-4" />
-                                                </button>
+                                                </div>
                                                 <div className="flex-1 min-w-0 space-y-1.5">
                                                     <h3 className={cn("font-medium text-lg leading-tight", wish.status === "done" && "line-through text-muted-foreground")}>
                                                         {wish.title}
@@ -316,11 +321,11 @@ export default function TasksWishesPage() {
                                                         </p>
                                                     )}
                                                     {wish.address && (
-                                                        <div className="flex items-center gap-1.5 text-sm">
+                                                        <div className="flex items-center gap-1.5 text-sm min-w-0">
                                                             <a
                                                                 href={`geo:0,0?q=${encodeURIComponent(wish.address)}`}
                                                                 onClick={(e) => e.stopPropagation()}
-                                                                className="flex items-center gap-1 text-primary hover:text-primary/80 underline underline-offset-2"
+                                                                className="flex items-center gap-1 text-primary hover:text-primary/80 underline underline-offset-2 flex-1 min-w-0"
                                                             >
                                                                 <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
                                                                 <span className="truncate">{wish.address}</span>
@@ -330,20 +335,34 @@ export default function TasksWishesPage() {
                                                     )}
                                                 </div>
                                             </div>
-                                            {wish.status === "want" && (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
+
+                                            {/* Action Buttons */}
+                                            <div className="flex flex-col gap-2 flex-shrink-0">
+                                                {wish.status === "want" && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            promoteToSchedule(wish);
+                                                        }}
+                                                        className="h-8 w-8 p-0"
+                                                        title="Add to Schedule"
+                                                    >
+                                                        <CalendarIcon className="h-4 w-4" />
+                                                    </Button>
+                                                )}
+                                                <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        promoteToSchedule(wish);
+                                                        openEditWishForm(wish);
                                                     }}
-                                                    className="flex-shrink-0"
-                                                    title="Add to Schedule"
+                                                    className="h-8 w-8 flex items-center justify-center hover:bg-secondary/20 rounded transition-colors text-muted-foreground hover:text-foreground"
+                                                    title="Edit"
                                                 >
-                                                    <CalendarIcon className="h-4 w-4" />
-                                                </Button>
-                                            )}
+                                                    <Pencil className="h-4 w-4" />
+                                                </button>
+                                            </div>
                                         </div>
                                     </CardContent>
                                 </Card>

@@ -10,20 +10,23 @@ interface ScheduleManagerProps {
     onDelete?: (id: string) => void | Promise<void>;
 }
 
-let openScheduleModal: ((schedule?: Schedule) => void) | null = null;
+let openScheduleModal: ((schedule?: Schedule, defaultDate?: string) => void) | null = null;
 
 export function ScheduleManager({ onUpdate, onDelete }: ScheduleManagerProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [editingSchedule, setEditingSchedule] = useState<Schedule | undefined>();
+    const [defaultDate, setDefaultDate] = useState<string | undefined>();
 
-    openScheduleModal = (schedule?: Schedule) => {
+    openScheduleModal = (schedule?: Schedule, date?: string) => {
         setEditingSchedule(schedule);
+        setDefaultDate(date);
         setIsOpen(true);
     };
 
     const handleClose = () => {
         setIsOpen(false);
         setEditingSchedule(undefined);
+        setDefaultDate(undefined);
     };
 
     const handleUpdate = (schedule: Schedule) => {
@@ -45,6 +48,7 @@ export function ScheduleManager({ onUpdate, onDelete }: ScheduleManagerProps) {
             <ScheduleForm 
                 onSuccess={handleClose} 
                 initialData={editingSchedule}
+                defaultDate={defaultDate}
                 onUpdate={handleUpdate}
                 onDelete={handleDelete}
             />
@@ -53,6 +57,6 @@ export function ScheduleManager({ onUpdate, onDelete }: ScheduleManagerProps) {
 }
 
 // Export function to open modal from anywhere
-export function openScheduleForm(schedule?: Schedule) {
-    openScheduleModal?.(schedule);
+export function openScheduleForm(schedule?: Schedule, defaultDate?: string) {
+    openScheduleModal?.(schedule, defaultDate);
 }
