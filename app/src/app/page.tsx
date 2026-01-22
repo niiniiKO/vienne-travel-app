@@ -1,56 +1,48 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Timeline } from "@/components/schedule/timeline";
 import { Schedule } from "@/types/database";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Loader2 } from "lucide-react";
 import { ScheduleManager, openScheduleForm } from "@/components/schedule/schedule-manager";
 import { cn } from "@/lib/utils";
-
-// Mock tags
-const AVAILABLE_TAGS = ["sightseeing", "food", "move", "Munich", "Vienna", "Puhga"];
-
-// Mock Data - using fixed dates to prevent hydration mismatch
-const MOCK_SCHEDULES: Schedule[] = [
-  {
-    id: "1",
-    start_time: "2026-02-14T10:00:00+09:00",
-    end_time: "2026-02-14T12:00:00+09:00",
-    title: "ウィーン到着・空港移動",
-    event_type: "range",
-    address: "Vienna International Airport, 1300 Schwechat, Austria",
-    tag: ["move", "Vienna"],
-    memo: "CAT(シティ・エアポート・トレイン)で市内へ。チケットはオンライン購入済み。",
-    created_at: "2026-02-01T00:00:00Z",
-  },
-  {
-    id: "2",
-    start_time: "2026-02-14T13:00:00+09:00",
-    end_time: "2026-02-14T14:30:00+09:00",
-    title: "ランチ @ Figlmüller",
-    event_type: "range",
-    address: "Wollzeile 5, 1010 Wien, Austria",
-    tag: ["food", "Vienna"],
-    memo: "シュニッツェルの有名店。予約必須。13:00〜予約済み。",
-    created_at: "2026-02-01T00:00:00Z",
-  },
-  {
-    id: "3",
-    start_time: "2026-02-14T15:00:00+09:00",
-    end_time: "2026-02-14T17:00:00+09:00",
-    title: "シュテファン大聖堂 観光",
-    event_type: "range",
-    address: "Stephansplatz 3, 1010 Wien, Austria",
-    tag: ["sightseeing", "Vienna"],
-    memo: "南塔の階段を登る。景色が良い。",
-    created_at: "2026-02-01T00:00:00Z",
-  },
-];
+import { useUser } from "@/contexts/user-context";
+import { supabase } from "@/lib/supabase";
+import { PullToRefresh } from "@/components/ui/pull-to-refresh";
 
 export default function Home() {
+  const { tags } = useUser();
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [currentDate, setCurrentDate] = useState(new Date("2026-02-14"));
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch schedules from Supabase
+  const fetchSchedules = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from("schedules")
+        .select("*")
+        .order("start_time", { ascending: true });
+
+      if (error) throw error;
+      setSchedules(data || []);
+    } catch (err) {
+      console.error("Failed to fetch schedules:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSchedules();
+  }, [fetchSchedules]);
+
+  // Pull-to-refresh handler
+  const handleRefresh = async () => {
+    await fetchSchedules();
+  };
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString("ja-JP", {
@@ -72,8 +64,64 @@ export default function Home() {
     );
   };
 
+  // Handle schedule update (add or edit) - save to Supabase
+  const handleScheduleUpdate = async (schedule: Schedule) => {
+    try {
+      const isNew = !schedule.id || schedule.id.startsWith("schedule-");
+      
+      if (isNew) {
+        // Create new schedule
+        const { id, ...scheduleWithoutId } = schedule;
+        const { data, error } = await supabase
+          .from("schedules")
+          .insert(scheduleWithoutId)
+          .select()
+          .single();
+        
+        if (error) throw error;
+        setSchedules(prev => [...prev, data]);
+      } else {
+        // Update existing schedule
+        const { error } = await supabase
+          .from("schedules")
+          .update({
+            title: schedule.title,
+            start_time: schedule.start_time,
+            end_time: schedule.end_time,
+            event_type: schedule.event_type,
+            address: schedule.address,
+            tag: schedule.tag,
+            memo: schedule.memo,
+          })
+          .eq("id", schedule.id);
+        
+        if (error) throw error;
+        setSchedules(prev => prev.map(s => s.id === schedule.id ? schedule : s));
+      }
+    } catch (err) {
+      console.error("Failed to save schedule:", err);
+      alert("スケジュールの保存に失敗しました");
+    }
+  };
+
+  // Handle schedule delete - delete from Supabase
+  const handleScheduleDelete = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("schedules")
+        .delete()
+        .eq("id", id);
+      
+      if (error) throw error;
+      setSchedules(prev => prev.filter(s => s.id !== id));
+    } catch (err) {
+      console.error("Failed to delete schedule:", err);
+      alert("スケジュールの削除に失敗しました");
+    }
+  };
+
   // Filter schedules by current date and selected tags
-  const filteredSchedules = MOCK_SCHEDULES.filter((schedule) => {
+  const filteredSchedules = schedules.filter((schedule) => {
     const scheduleDate = new Date(schedule.start_time);
     const dateMatch =
       scheduleDate.getFullYear() === currentDate.getFullYear() &&
@@ -88,66 +136,76 @@ export default function Home() {
     return dateMatch && tagMatch;
   });
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <>
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigateDay(-1)}
-            className="px-2"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
-
-          <h2 className="text-xl font-bold font-serif text-primary">
-            {formatDate(currentDate)}
-          </h2>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigateDay(1)}
-            className="px-2"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </Button>
-        </div>
-
-        {/* Tag Filter */}
-        <div className="flex flex-wrap gap-2">
-          {AVAILABLE_TAGS.map((tag) => (
-            <button
-              key={tag}
-              onClick={() => toggleTag(tag)}
-              className={cn(
-                "px-3 py-1 rounded-full text-xs font-medium transition-colors border",
-                selectedTags.includes(tag)
-                  ? "bg-secondary text-secondary-foreground border-secondary"
-                  : "bg-background text-muted-foreground border-input hover:border-secondary"
-              )}
+      <PullToRefresh onRefresh={handleRefresh}>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigateDay(-1)}
+              className="px-2"
             >
-              {tag}
-            </button>
-          ))}
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+
+            <h2 className="text-xl font-bold font-serif text-primary">
+              {formatDate(currentDate)}
+            </h2>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigateDay(1)}
+              className="px-2"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </Button>
+          </div>
+
+          {/* Tag Filter */}
+          <div className="flex flex-wrap gap-2">
+            {tags.map((tag) => (
+              <button
+                key={tag.id}
+                onClick={() => toggleTag(tag.name)}
+                className={cn(
+                  "px-3 py-1 rounded-full text-xs font-medium transition-colors border",
+                  selectedTags.includes(tag.name)
+                    ? "bg-secondary text-secondary-foreground border-secondary"
+                    : "bg-background text-muted-foreground border-input hover:border-secondary"
+                )}
+              >
+                {tag.name}
+              </button>
+            ))}
+          </div>
+
+          <Timeline items={filteredSchedules} onEdit={openScheduleForm} />
+
+          {/* Add Schedule button in header area */}
+          <Button
+            variant="gold"
+            size="sm"
+            className="w-full shadow-sm"
+            onClick={() => openScheduleForm()}
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Add Schedule
+          </Button>
         </div>
+      </PullToRefresh>
 
-        <Timeline items={filteredSchedules} onEdit={openScheduleForm} />
-
-        {/* Add Schedule button in header area */}
-        <Button
-          variant="gold"
-          size="sm"
-          className="w-full shadow-sm"
-          onClick={() => openScheduleForm()}
-        >
-          <Plus className="h-4 w-4 mr-1" />
-          Add Schedule
-        </Button>
-      </div>
-
-      <ScheduleManager />
+      <ScheduleManager onUpdate={handleScheduleUpdate} onDelete={handleScheduleDelete} />
     </>
   );
 }

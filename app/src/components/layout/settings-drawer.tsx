@@ -15,7 +15,7 @@ interface SettingsDrawerProps {
 }
 
 export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
-    const { currentUser, setCurrentUser } = useUser();
+    const { currentUser, setCurrentUser, refreshTags: refreshGlobalTags } = useUser();
     const router = useRouter();
     const [tags, setTags] = useState<Tag[]>([]);
     const [newTag, setNewTag] = useState("");
@@ -69,6 +69,8 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
             if (error) throw error;
             setTags([...tags, data]);
             setNewTag("");
+            // Update global tags context
+            await refreshGlobalTags();
         } catch (err) {
             console.error("Failed to add tag:", err);
             alert("タグの追加に失敗しました");
@@ -89,6 +91,8 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
             
             if (error) throw error;
             setTags(tags.filter((t) => t.id !== tag.id));
+            // Update global tags context
+            await refreshGlobalTags();
         } catch (err) {
             console.error("Failed to delete tag:", err);
             alert("タグの削除に失敗しました");
@@ -118,6 +122,8 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
             setTags(tags.map((t) => (t.id === editingTag ? { ...t, name: trimmedValue } : t)));
             setEditingTag(null);
             setEditingValue("");
+            // Update global tags context
+            await refreshGlobalTags();
         } catch (err) {
             console.error("Failed to update tag:", err);
             alert("タグの更新に失敗しました");

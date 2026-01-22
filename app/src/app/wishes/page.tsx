@@ -9,6 +9,7 @@ import { useState } from "react";
 import { Modal } from "@/components/ui/modal";
 import { WishForm } from "@/components/wishes/wish-form";
 import { openScheduleForm } from "@/components/schedule/schedule-manager";
+import { useUser } from "@/contexts/user-context";
 
 // Copy button component for address
 function CopyButton({ text }: { text: string }) {
@@ -41,9 +42,6 @@ function CopyButton({ text }: { text: string }) {
     );
 }
 
-// Mock tags
-const AVAILABLE_TAGS = ["sightseeing", "food", "move", "Munich", "Vienna", "Puhga"];
-
 // Mock Data - Wishes
 const MOCK_WISHES: Wish[] = [
     { id: "w1", title: "カフェ・ザッハでザッハトルテ", status: "want", tag: ["food", "Vienna"], memo: "ウィーンの定番スイーツ", address: "Philharmoniker Str. 4, 1010 Wien", created_at: "" },
@@ -63,6 +61,7 @@ const MOCK_TASKS: Task[] = [
 type TabType = "tasks" | "wishes";
 
 export default function TasksWishesPage() {
+    const { tags } = useUser();
     const [activeTab, setActiveTab] = useState<TabType>("tasks");
     const [wishes, setWishes] = useState(MOCK_WISHES);
     const [tasks, setTasks] = useState(MOCK_TASKS);
@@ -254,18 +253,18 @@ export default function TasksWishesPage() {
                     <div className="space-y-4">
                         {/* Tag Filter */}
                         <div className="flex flex-wrap gap-2">
-                            {AVAILABLE_TAGS.map((tag) => (
+                            {tags.map((tag) => (
                                 <button
-                                    key={tag}
-                                    onClick={() => toggleTag(tag)}
+                                    key={tag.id}
+                                    onClick={() => toggleTag(tag.name)}
                                     className={cn(
                                         "px-3 py-1 rounded-full text-xs font-medium transition-colors border",
-                                        selectedTags.includes(tag)
+                                        selectedTags.includes(tag.name)
                                             ? "bg-secondary text-secondary-foreground border-secondary"
                                             : "bg-background text-muted-foreground border-input hover:border-secondary"
                                     )}
                                 >
-                                    {tag}
+                                    {tag.name}
                                 </button>
                             ))}
                         </div>

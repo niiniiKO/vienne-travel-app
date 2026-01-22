@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Wish } from "@/types/database";
 import { Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useUser } from "@/contexts/user-context";
 
 interface WishFormProps {
     className?: string;
@@ -14,10 +15,8 @@ interface WishFormProps {
     initialData?: Wish;
 }
 
-// Mock tags - これは後でSupabaseから取得する
-const AVAILABLE_TAGS = ["sightseeing", "food", "move", "Munich", "Vienna", "Puhga"];
-
 export function WishForm({ className, onSuccess, onDelete, initialData }: WishFormProps) {
+    const { tags } = useUser();
     const [title, setTitle] = useState(initialData?.title || "");
     const [selectedTags, setSelectedTags] = useState<string[]>(initialData?.tag || []);
     const [memo, setMemo] = useState(initialData?.memo || "");
@@ -72,19 +71,19 @@ export function WishForm({ className, onSuccess, onDelete, initialData }: WishFo
             <div className="space-y-2">
                 <label className="text-sm font-medium">Tags</label>
                 <div className="flex flex-wrap gap-2">
-                    {AVAILABLE_TAGS.map((tag) => (
+                    {tags.map((tag) => (
                         <button
-                            key={tag}
+                            key={tag.id}
                             type="button"
-                            onClick={() => toggleTag(tag)}
+                            onClick={() => toggleTag(tag.name)}
                             className={cn(
                                 "px-3 py-1 rounded-full text-xs font-medium transition-colors border",
-                                selectedTags.includes(tag)
+                                selectedTags.includes(tag.name)
                                     ? "bg-secondary text-secondary-foreground border-secondary"
                                     : "bg-background text-muted-foreground border-input hover:border-secondary"
                             )}
                         >
-                            {tag}
+                            {tag.name}
                         </button>
                     ))}
                 </div>

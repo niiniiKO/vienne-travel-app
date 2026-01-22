@@ -5,9 +5,14 @@ import { Modal } from "@/components/ui/modal";
 import { ScheduleForm } from "./schedule-form";
 import { Schedule } from "@/types/database";
 
+interface ScheduleManagerProps {
+    onUpdate?: (schedule: Schedule) => void | Promise<void>;
+    onDelete?: (id: string) => void | Promise<void>;
+}
+
 let openScheduleModal: ((schedule?: Schedule) => void) | null = null;
 
-export function ScheduleManager() {
+export function ScheduleManager({ onUpdate, onDelete }: ScheduleManagerProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [editingSchedule, setEditingSchedule] = useState<Schedule | undefined>();
 
@@ -21,13 +26,28 @@ export function ScheduleManager() {
         setEditingSchedule(undefined);
     };
 
+    const handleUpdate = (schedule: Schedule) => {
+        onUpdate?.(schedule);
+    };
+
+    const handleDelete = () => {
+        if (editingSchedule) {
+            onDelete?.(editingSchedule.id);
+        }
+    };
+
     return (
         <Modal
             isOpen={isOpen}
             onClose={handleClose}
             title={editingSchedule ? "Edit Schedule" : "Add Schedule"}
         >
-            <ScheduleForm onSuccess={handleClose} initialData={editingSchedule} />
+            <ScheduleForm 
+                onSuccess={handleClose} 
+                initialData={editingSchedule}
+                onUpdate={handleUpdate}
+                onDelete={handleDelete}
+            />
         </Modal>
     );
 }

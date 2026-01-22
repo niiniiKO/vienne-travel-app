@@ -7,18 +7,18 @@ import { Select } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { Schedule } from "@/types/database";
 import { Trash2 } from "lucide-react";
+import { useUser } from "@/contexts/user-context";
 
 interface ScheduleFormProps {
     className?: string;
     onSuccess?: () => void;
-    onDelete?: () => void;
+    onDelete?: () => void | Promise<void>;
+    onUpdate?: (schedule: Schedule) => void | Promise<void>;
     initialData?: Schedule;
 }
 
-// Mock tags - これは後でSupabaseから取得する
-const AVAILABLE_TAGS = ["sightseeing", "food", "move", "Munich", "Vienna", "Puhga"];
-
-export function ScheduleForm({ className, onSuccess, onDelete, initialData }: ScheduleFormProps) {
+export function ScheduleForm({ className, onSuccess, onDelete, onUpdate, initialData }: ScheduleFormProps) {
+    const { tags } = useUser();
     const [title, setTitle] = React.useState(initialData?.title || "");
     const [date, setDate] = React.useState(() => {
         if (initialData?.start_time) {
@@ -56,10 +56,11 @@ export function ScheduleForm({ className, onSuccess, onDelete, initialData }: Sc
 
         // Combine date and time
         const startDateTime = new Date(`${date}T${startTime}`).toISOString();
-        const endDateTime = new Date(`${date}T${endTime}`).toISOString();
+        const endDateTime = eventType === "range" 
+            ? new Date(`${date}T${endTime}`).toISOString()
+            : startDateTime;
 
-        // TODO: Backend integration
-        console.log({
+        const scheduleData: Schedule = {
             id: initialData?.id || `schedule-${Date.now()}`,
             title,
             start_time: startDateTime,
@@ -69,18 +70,15 @@ export function ScheduleForm({ className, onSuccess, onDelete, initialData }: Sc
             tag: selectedTags,
             memo,
             created_at: initialData?.created_at || new Date().toISOString(),
-        });
+        };
 
-        alert(initialData ? "Schedule updated (mock)!" : "Schedule created (mock)!");
+        onUpdate?.(scheduleData);
         onSuccess?.();
     };
 
-    const handleDelete = () => {
+    const handleDelete = async () => {
         if (confirm("このスケジュールを削除しますか?")) {
-            // TODO: Backend integration
-            console.log("Delete schedule:", initialData?.id);
-            alert("Schedule deleted (mock)!");
-            onDelete?.();
+            await onDelete?.();
             onSuccess?.();
         }
     };
@@ -119,7 +117,7 @@ export function ScheduleForm({ className, onSuccess, onDelete, initialData }: Sc
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className={eventType === "range" ? "grid grid-cols-2 gap-4" : ""}>
                 <div className="space-y-2">
                     <label className="text-sm font-medium">Start Time *</label>
                     <Input
@@ -129,35 +127,35 @@ export function ScheduleForm({ className, onSuccess, onDelete, initialData }: Sc
                         required
                     />
                 </div>
-                <div className="space-y-2">
-                    <label className="text-sm font-medium">
-                        End Time {eventType === "range" && "*"}
-                    </label>
-                    <Input
-                        type="time"
-                        value={endTime}
-                        onChange={(e) => setEndTime(e.target.value)}
-                        required={eventType === "range"}
-                    />
-                </div>
+                {eventType === "range" && (
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium">End Time *</label>
+                        <Input
+                            type="time"
+                            value={endTime}
+                            onChange={(e) => setEndTime(e.target.value)}
+                            required
+                        />
+                    </div>
+                )}
             </div>
 
             <div className="space-y-2">
                 <label className="text-sm font-medium">Tags</label>
                 <div className="flex flex-wrap gap-2">
-                    {AVAILABLE_TAGS.map((tag) => (
+                    {tags.map((tag) => (
                         <button
-                            key={tag}
+                            key={tag.id}
                             type="button"
-                            onClick={() => toggleTag(tag)}
+                            onClick={() => toggleTag(tag.name)}
                             className={cn(
                                 "px-3 py-1 rounded-full text-xs font-medium transition-colors border",
-                                selectedTags.includes(tag)
+                                selectedTags.includes(tag.name)
                                     ? "bg-secondary text-secondary-foreground border-secondary"
                                     : "bg-background text-muted-foreground border-input hover:border-secondary"
                             )}
                         >
-                            {tag}
+                            {tag.name}
                         </button>
                     ))}
                 </div>

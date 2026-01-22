@@ -1,12 +1,15 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { Profile } from "@/types/database";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { Profile, Tag } from "@/types/database";
+import { supabase } from "@/lib/supabase";
 
 interface UserContextType {
     currentUser: Profile | null;
     setCurrentUser: (user: Profile | null) => void;
     isLoading: boolean;
+    tags: Tag[];
+    refreshTags: () => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -24,6 +27,21 @@ export const MEMBERS: Profile[] = [
 export function UserProvider({ children }: { children: React.ReactNode }) {
     const [currentUser, setCurrentUserState] = useState<Profile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [tags, setTags] = useState<Tag[]>([]);
+
+    const refreshTags = useCallback(async () => {
+        try {
+            const { data, error } = await supabase
+                .from("tags")
+                .select("*")
+                .order("name");
+            
+            if (error) throw error;
+            setTags(data || []);
+        } catch (err) {
+            console.error("Failed to fetch tags:", err);
+        }
+    }, []);
 
     useEffect(() => {
         // Load user from localStorage on mount
@@ -37,7 +55,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             }
         }
         setIsLoading(false);
-    }, []);
+        
+        // Fetch tags on mount
+        refreshTags();
+    }, [refreshTags]);
 
     const setCurrentUser = (user: Profile | null) => {
         setCurrentUserState(user);
@@ -49,7 +70,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <UserContext.Provider value={{ currentUser, setCurrentUser, isLoading }}>
+        <UserContext.Provider value={{ currentUser, setCurrentUser, isLoading, tags, refreshTags }}>
             {children}
         </UserContext.Provider>
     );

@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { Info } from "@/types/database";
 import { Card, CardContent } from "@/components/ui/card";
-import { FileText } from "lucide-react";
-import { FAB } from "@/components/ui/fab";
+import { FileText, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { InfoForm } from "@/components/info/info-form";
 import Link from "next/link";
@@ -38,6 +38,14 @@ export default function InfoPage() {
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
                     <h2 className="text-xl font-bold font-serif text-primary">Information</h2>
+                    <Button
+                        variant="gold"
+                        size="sm"
+                        onClick={() => setIsFormOpen(true)}
+                    >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Add Info
+                    </Button>
                 </div>
 
                 {infos.length === 0 ? (
@@ -73,8 +81,6 @@ export default function InfoPage() {
                         ))}
                     </div>
                 )}
-
-                <FAB onClick={() => setIsFormOpen(true)} label="Add Information" />
             </div>
 
             <Modal isOpen={isFormOpen} onClose={closeForm} title="Add Info">
