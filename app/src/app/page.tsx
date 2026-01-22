@@ -14,7 +14,12 @@ import { PullToRefresh } from "@/components/ui/pull-to-refresh";
 export default function Home() {
   const { tags } = useUser();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
-  const [currentDate, setCurrentDate] = useState(new Date("2026-02-14"));
+  const [currentDate, setCurrentDate] = useState(() => {
+    const today = new Date();
+    const targetDate = new Date("2026-02-17");
+    // 現在の日付が2月17日以前なら2月17日、以降なら現在の日付を表示
+    return today < targetDate ? targetDate : today;
+  });
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
