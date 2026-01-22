@@ -18,10 +18,10 @@ interface WishFormProps {
 const AVAILABLE_TAGS = ["sightseeing", "food", "move", "Munich", "Vienna", "Puhga"];
 
 export function WishForm({ className, onSuccess, onDelete, initialData }: WishFormProps) {
-    const [title, setTitle] = React.useState(initialData?.title || "");
-    const [selectedTags, setSelectedTags] = React.useState<string[]>(initialData?.tag || []);
-    const [memo, setMemo] = React.useState(initialData?.memo || "");
-    const [address, setAddress] = React.useState(initialData?.address || "");
+    const [title, setTitle] = useState(initialData?.title || "");
+    const [selectedTags, setSelectedTags] = useState<string[]>(initialData?.tag || []);
+    const [memo, setMemo] = useState(initialData?.memo || "");
+    const [address, setAddress] = useState(initialData?.address || "");
 
     const toggleTag = (tag: string) => {
         setSelectedTags((prev) =>
