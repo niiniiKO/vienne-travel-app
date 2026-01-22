@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+:root {
+  /* Vienna Theme Colors */
+  --background: #F5F5DC;
+  --foreground: #3B2F2F;
+  --primary: #800020;
+  --primary-foreground: #FFFFFF;
+  --secondary: #D4AF37;
+  --secondary-foreground: #3B2F2F;
+  --muted: #E6E6CA;
+  --muted-foreground: #5C4B4B;
+  --accent: #D4AF37;
+  --accent-foreground: #3B2F2F;
+  --card: #FFFDF5; /* Slightly lighter cream for cards */
+  --card-foreground: #3B2F2F;
+  --border: #D4AF37;
+  --input: #E6E6CA;
+  --ring: #800020;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  
+  /* Fonts */
+  --font-serif: var(--font-serif);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-serif), serif;
+}
