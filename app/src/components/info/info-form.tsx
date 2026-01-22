@@ -6,41 +6,89 @@ import { Input } from "@/components/ui/input";
 import { Info } from "@/types/database";
 import { Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/lib/supabase";
 
 interface InfoFormProps {
     className?: string;
     onSuccess?: () => void;
     onDelete?: () => void;
+    onCreated?: (info: Info) => void;
+    onUpdated?: (info: Info) => void;
     initialData?: Info;
 }
 
-export function InfoForm({ className, onSuccess, onDelete, initialData }: InfoFormProps) {
+export function InfoForm({ className, onSuccess, onDelete, onCreated, onUpdated, initialData }: InfoFormProps) {
     const [title, setTitle] = useState(initialData?.title || "");
     const [contentText, setContentText] = useState(initialData?.content_text || "");
+    const [loading, setLoading] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setLoading(true);
 
-        // TODO: Backend integration
-        console.log({
-            id: initialData?.id || `info-${Date.now()}`,
-            title,
-            content_text: contentText,
-            content_html: null,
-            created_at: initialData?.created_at || new Date().toISOString(),
-        });
-
-        alert(initialData ? "Info updated (mock)!" : "Info added (mock)!");
-        onSuccess?.();
+        try {
+            if (initialData) {
+                // Update existing info
+                const { error } = await supabase
+                    .from("infos")
+                    .update({
+                        title,
+                        content_text: contentText || null,
+                    })
+                    .eq("id", initialData.id);
+                
+                if (error) throw error;
+                
+                const updatedInfo: Info = {
+                    ...initialData,
+                    title,
+                    content_text: contentText || null,
+                };
+                onUpdated?.(updatedInfo);
+            } else {
+                // Create new info
+                const { data, error } = await supabase
+                    .from("infos")
+                    .insert({
+                        title,
+                        content_text: contentText || null,
+                    })
+                    .select()
+                    .single();
+                
+                if (error) throw error;
+                if (data) {
+                    onCreated?.(data);
+                }
+            }
+            onSuccess?.();
+        } catch (err) {
+            console.error("Failed to save info:", err);
+            alert("情報の保存に失敗しました");
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const handleDelete = () => {
-        if (confirm("この情報を削除しますか?")) {
-            // TODO: Backend integration
-            console.log("Delete info:", initialData?.id);
-            alert("Info deleted (mock)!");
+    const handleDelete = async () => {
+        if (!initialData) return;
+        if (!confirm("この情報を削除しますか?")) return;
+
+        setLoading(true);
+        try {
+            const { error } = await supabase
+                .from("infos")
+                .delete()
+                .eq("id", initialData.id);
+            
+            if (error) throw error;
             onDelete?.();
             onSuccess?.();
+        } catch (err) {
+            console.error("Failed to delete info:", err);
+            alert("情報の削除に失敗しました");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -53,6 +101,7 @@ export function InfoForm({ className, onSuccess, onDelete, initialData }: InfoFo
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     required
+                    disabled={loading}
                 />
             </div>
 
@@ -63,12 +112,13 @@ export function InfoForm({ className, onSuccess, onDelete, initialData }: InfoFo
                     placeholder="情報の内容を入力..."
                     value={contentText}
                     onChange={(e) => setContentText(e.target.value)}
+                    disabled={loading}
                 />
             </div>
 
             <div className="flex gap-2">
-                <Button type="submit" variant="gold" className="flex-1" size="lg">
-                    {initialData ? "Update Info" : "Add Info"}
+                <Button type="submit" variant="gold" className="flex-1" size="lg" disabled={loading}>
+                    {loading ? "処理中..." : (initialData ? "Update Info" : "Add Info")}
                 </Button>
                 {initialData && (
                     <Button
@@ -77,6 +127,7 @@ export function InfoForm({ className, onSuccess, onDelete, initialData }: InfoFo
                         size="lg"
                         onClick={handleDelete}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        disabled={loading}
                     >
                         <Trash2 className="h-5 w-5" />
                     </Button>

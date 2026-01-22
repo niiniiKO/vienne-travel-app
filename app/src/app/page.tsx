@@ -11,6 +11,22 @@ import { useUser } from "@/contexts/user-context";
 import { supabase } from "@/lib/supabase";
 import { PullToRefresh } from "@/components/ui/pull-to-refresh";
 
+// Extended type for display with date-crossing info
+export interface DisplaySchedule extends Schedule {
+  isContinuedFromPreviousDay?: boolean;
+  originalSchedule?: Schedule;
+}
+
+// Helper to get date string in CET timezone
+const getDateInCET = (date: Date): string => {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Vienna',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(date);
+};
+
 export default function Home() {
   const { tags } = useUser();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
@@ -75,37 +91,57 @@ export default function Home() {
       const isNew = !schedule.id || schedule.id.startsWith("schedule-");
       
       if (isNew) {
-        // Create new schedule
-        const { id, ...scheduleWithoutId } = schedule;
+        // Create new schedule - extract only the fields we need
+        // Note: Some columns may need to be added to Supabase database
+        const insertData: Record<string, unknown> = {
+          title: schedule.title,
+          start_time: schedule.start_time,
+          end_time: schedule.end_time,
+        };
+        
+        // Add optional fields if they have values
+        if (schedule.address) insertData.address = schedule.address;
+        if (schedule.tag && schedule.tag.length > 0) insertData.tag = schedule.tag;
+        if (schedule.memo) insertData.memo = schedule.memo;
+        if (schedule.event_type) insertData.event_type = schedule.event_type;
+        
         const { data, error } = await supabase
           .from("schedules")
-          .insert(scheduleWithoutId)
+          .insert(insertData)
           .select()
           .single();
         
         if (error) throw error;
-        setSchedules(prev => [...prev, data]);
+        if (data) {
+          setSchedules(prev => [...prev, data]);
+        }
       } else {
         // Update existing schedule
+        // Note: Some columns may need to be added to Supabase database
+        const updateData: Record<string, unknown> = {
+          title: schedule.title,
+          start_time: schedule.start_time,
+          end_time: schedule.end_time,
+        };
+        
+        // Add optional fields
+        if (schedule.address !== undefined) updateData.address = schedule.address;
+        if (schedule.tag !== undefined) updateData.tag = schedule.tag;
+        if (schedule.memo !== undefined) updateData.memo = schedule.memo;
+        if (schedule.event_type !== undefined) updateData.event_type = schedule.event_type;
+        
         const { error } = await supabase
           .from("schedules")
-          .update({
-            title: schedule.title,
-            start_time: schedule.start_time,
-            end_time: schedule.end_time,
-            event_type: schedule.event_type,
-            address: schedule.address,
-            tag: schedule.tag,
-            memo: schedule.memo,
-          })
+          .update(updateData)
           .eq("id", schedule.id);
         
         if (error) throw error;
         setSchedules(prev => prev.map(s => s.id === schedule.id ? schedule : s));
       }
-    } catch (err) {
-      console.error("Failed to save schedule:", err);
-      alert("スケジュールの保存に失敗しました");
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : JSON.stringify(err);
+      console.error("Failed to save schedule:", errorMessage, err);
+      alert(`スケジュールの保存に失敗しました: ${errorMessage}`);
     }
   };
 
@@ -126,20 +162,44 @@ export default function Home() {
   };
 
   // Filter schedules by current date and selected tags
-  const filteredSchedules = schedules.filter((schedule) => {
-    const scheduleDate = new Date(schedule.start_time);
-    const dateMatch =
-      scheduleDate.getFullYear() === currentDate.getFullYear() &&
-      scheduleDate.getMonth() === currentDate.getMonth() &&
-      scheduleDate.getDate() === currentDate.getDate();
+  // Also include date-crossing events that END on currentDate
+  const filteredSchedules: DisplaySchedule[] = (() => {
+    const currentDateStr = getDateInCET(currentDate);
+    
+    // Events that START on current date (normal display)
+    const startingOnCurrentDate = schedules.filter((schedule) => {
+      const startDateStr = getDateInCET(new Date(schedule.start_time));
+      return startDateStr === currentDateStr;
+    }).map(schedule => ({
+      ...schedule,
+      isContinuedFromPreviousDay: false,
+      originalSchedule: schedule
+    }));
 
-    // If no tags selected, show all
-    if (selectedTags.length === 0) return dateMatch;
+    // Events that cross dates: START before currentDate AND END on currentDate
+    const crossingEvents = schedules.filter((schedule) => {
+      const startDateStr = getDateInCET(new Date(schedule.start_time));
+      const endDateStr = getDateInCET(new Date(schedule.end_time));
+      // Starts before current date and ends on current date
+      return startDateStr !== currentDateStr && endDateStr === currentDateStr;
+    }).map(schedule => ({
+      ...schedule,
+      isContinuedFromPreviousDay: true,
+      originalSchedule: schedule
+    }));
 
-    // OR search: show if any tag matches
-    const tagMatch = schedule.tag?.some((t) => selectedTags.includes(t)) || false;
-    return dateMatch && tagMatch;
-  });
+    // Combine: crossing events first (sorted by end_time), then normal events (sorted by start_time)
+    const combined = [
+      ...crossingEvents.sort((a, b) => new Date(a.end_time).getTime() - new Date(b.end_time).getTime()),
+      ...startingOnCurrentDate.sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())
+    ];
+
+    // Apply tag filter
+    if (selectedTags.length === 0) return combined;
+    return combined.filter(schedule => 
+      schedule.tag?.some((t) => selectedTags.includes(t)) || false
+    );
+  })();
 
   if (loading) {
     return (
@@ -195,7 +255,14 @@ export default function Home() {
             ))}
           </div>
 
-          <Timeline items={filteredSchedules} onEdit={openScheduleForm} />
+          <Timeline 
+            items={filteredSchedules} 
+            onEdit={(schedule) => {
+              // For date-crossing events, pass the original schedule for editing
+              const displaySchedule = schedule as DisplaySchedule;
+              openScheduleForm(displaySchedule.originalSchedule || schedule);
+            }} 
+          />
 
           {/* Add Schedule button in header area */}
           <Button

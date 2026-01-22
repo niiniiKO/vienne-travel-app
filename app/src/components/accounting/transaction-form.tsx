@@ -5,24 +5,30 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { useUser, MEMBERS } from "@/contexts/user-context";
-import { Transaction } from "@/types/database";
+import { useUser } from "@/contexts/user-context";
+import { Transaction, Profile } from "@/types/database";
 import { Trash2 } from "lucide-react";
+
+interface TransactionWithShares extends Transaction {
+    forWhom?: string[];
+}
 
 interface TransactionFormProps {
     className?: string;
+    profiles: Profile[];
     onSuccess?: () => void;
     onDelete?: () => void;
-    initialData?: Transaction & { forWhom?: string[] };
+    onUpdate?: (transaction: TransactionWithShares) => void;
+    initialData?: TransactionWithShares;
 }
 
-export function TransactionForm({ className, onSuccess, onDelete, initialData }: TransactionFormProps) {
+export function TransactionForm({ className, profiles = [], onSuccess, onDelete, onUpdate, initialData }: TransactionFormProps) {
     const { currentUser } = useUser();
     const [amount, setAmount] = React.useState(initialData?.amount?.toString() || "");
     const [currency, setCurrency] = React.useState<"EUR" | "JPY">(initialData?.currency || "EUR");
     const [description, setDescription] = React.useState(initialData?.description || "");
-    const [paidBy, setPaidBy] = React.useState(initialData?.paid_by || currentUser?.id || MEMBERS[0].id);
-    const [forWhom, setForWhom] = React.useState<string[]>(initialData?.forWhom || MEMBERS.map(u => u.id));
+    const [paidBy, setPaidBy] = React.useState(initialData?.paid_by || currentUser?.id || (profiles[0]?.id ?? ""));
+    const [forWhom, setForWhom] = React.useState<string[]>(initialData?.forWhom || (profiles.length > 0 ? profiles.map(u => u.id) : []));
 
     // Update paidBy when currentUser changes (only for new transactions)
     React.useEffect(() => {
@@ -31,10 +37,17 @@ export function TransactionForm({ className, onSuccess, onDelete, initialData }:
         }
     }, [currentUser, initialData]);
 
+    // Update forWhom when profiles load
+    React.useEffect(() => {
+        if (!initialData && profiles.length > 0 && forWhom.length === 0) {
+            setForWhom(profiles.map(u => u.id));
+        }
+    }, [profiles, initialData, forWhom.length]);
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // TODO: Integrate with backend
-        console.log({
+        
+        const transactionData: TransactionWithShares = {
             id: initialData?.id || `transaction-${Date.now()}`,
             amount: Number(amount),
             currency,
@@ -42,22 +55,14 @@ export function TransactionForm({ className, onSuccess, onDelete, initialData }:
             paid_by: paidBy,
             forWhom,
             created_at: initialData?.created_at || new Date().toISOString(),
-        });
-        alert(initialData ? "Transaction updated (mock)!" : "Transaction registered (mock)!");
-        if (!initialData) {
-            setAmount("");
-            setDescription("");
-        }
-        onSuccess?.();
+        };
+
+        onUpdate?.(transactionData);
     };
 
     const handleDelete = () => {
         if (confirm("このトランザクションを削除しますか?")) {
-            // TODO: Backend integration
-            console.log("Delete transaction:", initialData?.id);
-            alert("Transaction deleted (mock)!");
             onDelete?.();
-            onSuccess?.();
         }
     };
 
@@ -132,7 +137,7 @@ export function TransactionForm({ className, onSuccess, onDelete, initialData }:
                     value={paidBy}
                     onChange={(e) => setPaidBy(e.target.value)}
                 >
-                    {MEMBERS.map(user => (
+                    {profiles.map(user => (
                         <option key={user.id} value={user.id}>{user.name}</option>
                     ))}
                 </Select>
@@ -141,7 +146,7 @@ export function TransactionForm({ className, onSuccess, onDelete, initialData }:
             <div className="space-y-2">
                 <label className="text-sm font-medium">For Whom</label>
                 <div className="flex flex-wrap gap-2">
-                    {MEMBERS.map(user => {
+                    {profiles.map(user => {
                         const isSelected = forWhom.includes(user.id);
                         return (
                             <button
@@ -161,7 +166,7 @@ export function TransactionForm({ className, onSuccess, onDelete, initialData }:
                     })}
                 </div>
                 <div className="text-xs text-muted-foreground text-right">
-                    {forWhom.length === MEMBERS.length ? "Everyone" : `${forWhom.length} people`}
+                    {forWhom.length === profiles.length ? "Everyone" : `${forWhom.length} people`}
                 </div>
             </div>
 

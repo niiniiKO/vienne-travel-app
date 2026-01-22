@@ -12,10 +12,11 @@ interface WishFormProps {
     className?: string;
     onSuccess?: () => void;
     onDelete?: () => void;
+    onUpdate?: (wish: Wish) => void;
     initialData?: Wish;
 }
 
-export function WishForm({ className, onSuccess, onDelete, initialData }: WishFormProps) {
+export function WishForm({ className, onSuccess, onDelete, onUpdate, initialData }: WishFormProps) {
     const { tags } = useUser();
     const [title, setTitle] = useState(initialData?.title || "");
     const [selectedTags, setSelectedTags] = useState<string[]>(initialData?.tag || []);
@@ -31,8 +32,7 @@ export function WishForm({ className, onSuccess, onDelete, initialData }: WishFo
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        // TODO: Backend integration
-        console.log({
+        const wishData: Wish = {
             id: initialData?.id || `wish-${Date.now()}`,
             title,
             tag: selectedTags,
@@ -40,10 +40,15 @@ export function WishForm({ className, onSuccess, onDelete, initialData }: WishFo
             address,
             status: initialData?.status || "want",
             created_at: initialData?.created_at || new Date().toISOString(),
-        });
+        };
 
-        alert(initialData ? "Wish updated (mock)!" : "Wish added (mock)!");
-        onSuccess?.();
+        if (onUpdate) {
+            onUpdate(wishData);
+        } else {
+            console.log(wishData);
+            alert(initialData ? "Wish updated (mock)!" : "Wish added (mock)!");
+            onSuccess?.();
+        }
     };
 
     const handleDelete = () => {

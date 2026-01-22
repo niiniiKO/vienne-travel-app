@@ -7,61 +7,78 @@ import { cn } from "@/lib/utils";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-// Mock Profiles for now
-const PROFILES: Profile[] = [
-    { id: "u1", name: "Aoyama" },
-    { id: "u2", name: "Asada" },
-    { id: "u3", name: "Ichikawa" },
-    { id: "u4", name: "Onizawa" },
-];
+export const EXCHANGE_RATE = 180; // 1 EUR = 180 JPY
 
-const EXCHANGE_RATE = 180; // 1 EUR = 180 JPY
+// 前回の旅行からの繰越残高 (JPY)
+// プラス = 払いすぎ（返してもらう側）、マイナス = 不足（払う側）
+export const INITIAL_BALANCE_JPY: Record<string, number> = {
+    "青山": 55704,
+    "浅田": -118491,
+    "市川": -48274,
+    "鬼澤": 133060,
+};
 
 interface BalanceBoardProps {
     transactions: Transaction[];
+    profiles: Profile[];
 }
 
-export function BalanceBoard({ transactions }: BalanceBoardProps) {
+export function BalanceBoard({ transactions, profiles }: BalanceBoardProps) {
     const [showDetails, setShowDetails] = React.useState(false);
+
+    // If no profiles, show empty state
+    if (profiles.length === 0) {
+        return (
+            <Card className="bg-card shadow-sm">
+                <CardContent className="py-8 text-center text-muted-foreground">
+                    プロフィールを読み込み中...
+                </CardContent>
+            </Card>
+        );
+    }
 
     // --- Calculation Logic ---
 
     // 1. Totals
     const totalEUR = transactions
         .filter((t) => t.currency === "EUR")
-        .reduce((sum, t) => sum + t.amount, 0);
+        .reduce((sum, t) => sum + Number(t.amount), 0);
 
     const totalJPY = transactions
         .filter((t) => t.currency === "JPY")
-        .reduce((sum, t) => sum + t.amount, 0);
+        .reduce((sum, t) => sum + Number(t.amount), 0);
 
     // Approximate Total in EUR
     const totalApproxEUR = totalEUR + (totalJPY / EXCHANGE_RATE);
-    const perPersonApproxEUR = totalApproxEUR / 4;
+    const perPersonApproxEUR = totalApproxEUR / profiles.length;
 
-    const perPersonEUR = totalEUR / 4;
-    const perPersonJPY = totalJPY / 4;
+    const perPersonEUR = totalEUR / profiles.length;
+    const perPersonJPY = totalJPY / profiles.length;
 
     // 2. Balances per User
-    const balances = PROFILES.map((user) => {
+    const balances = profiles.map((user) => {
         const paidEUR = transactions
             .filter((t) => t.paid_by === user.id && t.currency === "EUR")
-            .reduce((sum, t) => sum + t.amount, 0);
+            .reduce((sum, t) => sum + Number(t.amount), 0);
 
         const paidJPY = transactions
             .filter((t) => t.paid_by === user.id && t.currency === "JPY")
-            .reduce((sum, t) => sum + t.amount, 0);
+            .reduce((sum, t) => sum + Number(t.amount), 0);
 
         const diffEUR = paidEUR - perPersonEUR;
         const diffJPY = paidJPY - perPersonJPY;
 
-        // Approximate Difference in EUR
-        const diffApproxEUR = diffEUR + (diffJPY / EXCHANGE_RATE);
+        // 前回旅行からの繰越残高を追加
+        const initialBalanceJPY = INITIAL_BALANCE_JPY[user.name] || 0;
+
+        // Approximate Difference in EUR (繰越残高を含む)
+        const diffApproxEUR = diffEUR + ((diffJPY + initialBalanceJPY) / EXCHANGE_RATE);
 
         return {
             name: user.name,
             diffEUR,
             diffJPY,
+            initialBalanceJPY,
             diffApproxEUR,
         };
     });

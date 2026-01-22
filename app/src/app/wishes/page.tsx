@@ -3,13 +3,15 @@
 import { Wish, Task } from "@/types/database";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, Plus, Calendar as CalendarIcon, MapPin, Copy, Check as CheckIcon, Pencil } from "lucide-react";
+import { Check, Plus, Calendar as CalendarIcon, MapPin, Copy, Check as CheckIcon, Pencil, Trash2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Modal } from "@/components/ui/modal";
 import { WishForm } from "@/components/wishes/wish-form";
 import { openScheduleForm } from "@/components/schedule/schedule-manager";
 import { useUser } from "@/contexts/user-context";
+import { supabase } from "@/lib/supabase";
+import { PullToRefresh } from "@/components/ui/pull-to-refresh";
 
 // Copy button component for address
 function CopyButton({ text }: { text: string }) {
@@ -42,29 +44,14 @@ function CopyButton({ text }: { text: string }) {
     );
 }
 
-// Mock Data - Wishes
-const MOCK_WISHES: Wish[] = [
-    { id: "w1", title: "カフェ・ザッハでザッハトルテ", status: "want", tag: ["food", "Vienna"], memo: "ウィーンの定番スイーツ", address: "Philharmoniker Str. 4, 1010 Wien", created_at: "" },
-    { id: "w2", title: "ベルヴェデーレ宮殿 (クリムト)", status: "want", tag: ["sightseeing", "Vienna"], memo: "「接吻」を見る", address: "Prinz Eugen-Straße 27, 1030 Wien", created_at: "" },
-    { id: "w3", title: "ウィーン国立歌劇場 (立ち見)", status: "done", tag: ["sightseeing", "Vienna"], memo: "", address: "Opernring 2, 1010 Wien", created_at: "" },
-    { id: "w4", title: "Plachutta (ターフェルシュピッツ)", status: "want", tag: ["food", "Vienna"], memo: "ウィーン伝統料理", address: "Wollzeile 38, 1010 Wien", created_at: "" },
-];
-
-// Mock Data - Tasks
-const MOCK_TASKS: Task[] = [
-    { id: "t1", title: "パスポートコピーを用意", memo: "ホテルチェックイン時に必要", is_done: true, created_at: "" },
-    { id: "t2", title: "海外旅行保険に加入", memo: "", is_done: false, created_at: "" },
-    { id: "t3", title: "ユーロを両替", memo: "空港で5万円分", is_done: false, created_at: "" },
-    { id: "t4", title: "WiFiルーターをレンタル", memo: "受け取り場所を確認", is_done: false, created_at: "" },
-];
-
 type TabType = "tasks" | "wishes";
 
 export default function TasksWishesPage() {
     const { tags } = useUser();
     const [activeTab, setActiveTab] = useState<TabType>("tasks");
-    const [wishes, setWishes] = useState(MOCK_WISHES);
-    const [tasks, setTasks] = useState(MOCK_TASKS);
+    const [wishes, setWishes] = useState<Wish[]>([]);
+    const [tasks, setTasks] = useState<Task[]>([]);
+    const [loading, setLoading] = useState(true);
     const [isWishFormOpen, setIsWishFormOpen] = useState(false);
     const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
     const [editingWish, setEditingWish] = useState<Wish | undefined>(undefined);
@@ -75,9 +62,70 @@ export default function TasksWishesPage() {
     const [taskTitle, setTaskTitle] = useState("");
     const [taskMemo, setTaskMemo] = useState("");
 
-    // Wish functions
-    const toggleWishStatus = (id: string) => {
-        setWishes(wishes.map(w => w.id === id ? { ...w, status: w.status === "want" ? "done" : "want" } : w));
+    // Fetch data from Supabase
+    const fetchData = useCallback(async () => {
+        try {
+            const [wishesResult, tasksResult] = await Promise.all([
+                supabase.from("wishes").select("*").order("created_at", { ascending: false }),
+                supabase.from("tasks").select("*").order("created_at", { ascending: false })
+            ]);
+
+            // Check for errors with detailed logging
+            if (wishesResult.error) {
+                console.error("Wishes fetch error:", wishesResult.error.message, wishesResult.error.code);
+                // If table doesn't exist, use empty array
+                if (wishesResult.error.code === "42P01") {
+                    console.warn("wishes table does not exist");
+                } else {
+                    throw wishesResult.error;
+                }
+            }
+            if (tasksResult.error) {
+                console.error("Tasks fetch error:", tasksResult.error.message, tasksResult.error.code);
+                // If table doesn't exist, use empty array
+                if (tasksResult.error.code === "42P01") {
+                    console.warn("tasks table does not exist");
+                } else {
+                    throw tasksResult.error;
+                }
+            }
+
+            setWishes(wishesResult.data || []);
+            setTasks(tasksResult.data || []);
+        } catch (err: unknown) {
+            const error = err as { message?: string; code?: string };
+            console.error("Failed to fetch data:", error?.message || err, error?.code || "");
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    const handleRefresh = async () => {
+        await fetchData();
+    };
+
+    // ===== WISH FUNCTIONS =====
+    const toggleWishStatus = async (id: string) => {
+        const wish = wishes.find(w => w.id === id);
+        if (!wish) return;
+
+        const newStatus = wish.status === "want" ? "done" : "want";
+        
+        try {
+            const { error } = await supabase
+                .from("wishes")
+                .update({ status: newStatus })
+                .eq("id", id);
+            
+            if (error) throw error;
+            setWishes(wishes.map(w => w.id === id ? { ...w, status: newStatus } : w));
+        } catch (err) {
+            console.error("Failed to update wish status:", err);
+        }
     };
 
     const openEditWishForm = (wish: Wish) => {
@@ -88,6 +136,67 @@ export default function TasksWishesPage() {
     const closeWishForm = () => {
         setIsWishFormOpen(false);
         setEditingWish(undefined);
+    };
+
+    const handleWishUpdate = async (wishData: Wish) => {
+        try {
+            const isNew = !wishData.id || wishData.id.startsWith("wish-");
+            
+            if (isNew) {
+                const { data, error } = await supabase
+                    .from("wishes")
+                    .insert({
+                        title: wishData.title,
+                        status: wishData.status || "want",
+                        tag: wishData.tag,
+                        memo: wishData.memo,
+                        address: wishData.address,
+                    })
+                    .select()
+                    .single();
+                
+                if (error) throw error;
+                if (data) {
+                    setWishes([data, ...wishes]);
+                }
+            } else {
+                const { error } = await supabase
+                    .from("wishes")
+                    .update({
+                        title: wishData.title,
+                        status: wishData.status,
+                        tag: wishData.tag,
+                        memo: wishData.memo,
+                        address: wishData.address,
+                    })
+                    .eq("id", wishData.id);
+                
+                if (error) throw error;
+                setWishes(wishes.map(w => w.id === wishData.id ? wishData : w));
+            }
+            closeWishForm();
+        } catch (err) {
+            console.error("Failed to save wish:", err);
+            alert("Wishの保存に失敗しました");
+        }
+    };
+
+    const handleDeleteWish = async () => {
+        if (!editingWish) return;
+        
+        try {
+            const { error } = await supabase
+                .from("wishes")
+                .delete()
+                .eq("id", editingWish.id);
+            
+            if (error) throw error;
+            setWishes(wishes.filter(w => w.id !== editingWish.id));
+            closeWishForm();
+        } catch (err) {
+            console.error("Failed to delete wish:", err);
+            alert("Wishの削除に失敗しました");
+        }
     };
 
     const toggleTag = (tag: string) => {
@@ -114,9 +223,24 @@ export default function TasksWishesPage() {
         });
     };
 
-    // Task functions
-    const toggleTaskDone = (id: string) => {
-        setTasks(tasks.map(t => t.id === id ? { ...t, is_done: !t.is_done } : t));
+    // ===== TASK FUNCTIONS =====
+    const toggleTaskDone = async (id: string) => {
+        const task = tasks.find(t => t.id === id);
+        if (!task) return;
+
+        const newIsDone = !task.is_done;
+        
+        try {
+            const { error } = await supabase
+                .from("tasks")
+                .update({ is_done: newIsDone })
+                .eq("id", id);
+            
+            if (error) throw error;
+            setTasks(tasks.map(t => t.id === id ? { ...t, is_done: newIsDone } : t));
+        } catch (err) {
+            console.error("Failed to update task:", err);
+        }
     };
 
     const openEditTaskForm = (task: Task) => {
@@ -133,248 +257,297 @@ export default function TasksWishesPage() {
         setTaskMemo("");
     };
 
-    const handleTaskSubmit = (e: React.FormEvent) => {
+    const handleTaskSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!taskTitle.trim()) return;
 
-        if (editingTask) {
-            setTasks(tasks.map(t => t.id === editingTask.id ? { ...t, title: taskTitle, memo: taskMemo || null } : t));
-        } else {
-            const newTask: Task = {
-                id: `task-${Date.now()}`,
-                title: taskTitle,
-                memo: taskMemo || null,
-                is_done: false,
-                created_at: new Date().toISOString(),
-            };
-            setTasks([newTask, ...tasks]);
+        try {
+            if (editingTask) {
+                const { error } = await supabase
+                    .from("tasks")
+                    .update({ title: taskTitle, memo: taskMemo || null })
+                    .eq("id", editingTask.id);
+                
+                if (error) throw error;
+                setTasks(tasks.map(t => t.id === editingTask.id ? { ...t, title: taskTitle, memo: taskMemo || null } : t));
+            } else {
+                const { data, error } = await supabase
+                    .from("tasks")
+                    .insert({
+                        title: taskTitle,
+                        memo: taskMemo || null,
+                        is_done: false,
+                    })
+                    .select()
+                    .single();
+                
+                if (error) throw error;
+                if (data) {
+                    setTasks([data, ...tasks]);
+                }
+            }
+            closeTaskForm();
+        } catch (err) {
+            console.error("Failed to save task:", err);
+            alert("タスクの保存に失敗しました");
         }
-        closeTaskForm();
     };
 
-    const handleTaskDelete = () => {
-        if (editingTask && confirm("このタスクを削除しますか?")) {
+    const handleTaskDelete = async () => {
+        if (!editingTask) return;
+
+        try {
+            const { error } = await supabase
+                .from("tasks")
+                .delete()
+                .eq("id", editingTask.id);
+            
+            if (error) throw error;
             setTasks(tasks.filter(t => t.id !== editingTask.id));
             closeTaskForm();
+        } catch (err) {
+            console.error("Failed to delete task:", err);
+            alert("タスクの削除に失敗しました");
         }
     };
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        );
+    }
 
     return (
         <>
-            <div className="space-y-4">
-                {/* Tab Header */}
-                <div className="flex items-center justify-between">
-                    <div className="flex gap-1 p-1 bg-secondary/10 rounded-lg">
-                        <button
-                            onClick={() => setActiveTab("tasks")}
-                            className={cn(
-                                "px-4 py-2 rounded-md text-sm font-medium transition-colors",
-                                activeTab === "tasks"
-                                    ? "bg-background text-primary shadow-sm"
-                                    : "text-muted-foreground hover:text-foreground"
-                            )}
-                        >
-                            Tasks
-                        </button>
-                        <button
-                            onClick={() => setActiveTab("wishes")}
-                            className={cn(
-                                "px-4 py-2 rounded-md text-sm font-medium transition-colors",
-                                activeTab === "wishes"
-                                    ? "bg-background text-primary shadow-sm"
-                                    : "text-muted-foreground hover:text-foreground"
-                            )}
-                        >
-                            Wishes
-                        </button>
-                    </div>
-                    <Button 
-                        variant="gold" 
-                        size="sm" 
-                        className="shadow-sm" 
-                        onClick={() => activeTab === "tasks" ? setIsTaskFormOpen(true) : setIsWishFormOpen(true)}
-                    >
-                        <Plus className="h-4 w-4 mr-1" />
-                        Add {activeTab === "tasks" ? "Task" : "Wish"}
-                    </Button>
-                </div>
-
-                {/* Tasks Tab Content */}
-                {activeTab === "tasks" && (
-                    <div className="grid gap-3">
-                        {tasks.length === 0 ? (
-                            <div className="text-center py-12 text-muted-foreground">
-                                <p>タスクがまだありません</p>
-                            </div>
-                        ) : (
-                            tasks.map((task) => (
-                                <Card 
-                                    key={task.id} 
-                                    className={cn(
-                                        "transition-opacity cursor-pointer hover:shadow-md", 
-                                        task.is_done && "opacity-60"
-                                    )}
-                                    onClick={() => toggleTaskDone(task.id)}
-                                >
-                                    <CardContent className="p-4">
-                                        <div className="flex items-start gap-3">
-                                            {/* Visual Check Status */}
-                                            <div
-                                                className={cn(
-                                                    "h-6 w-6 rounded-full border border-primary flex items-center justify-center transition-colors flex-shrink-0 mt-0.5",
-                                                    task.is_done ? "bg-primary text-primary-foreground" : "text-transparent"
-                                                )}
-                                            >
-                                                <Check className="h-4 w-4" />
-                                            </div>
-
-                                            <div className="flex-1 min-w-0">
-                                                <h3 className={cn("font-medium text-lg leading-tight", task.is_done && "line-through text-muted-foreground")}>
-                                                    {task.title}
-                                                </h3>
-                                                {task.memo && (
-                                                    <p className="text-sm text-muted-foreground mt-1">
-                                                        {task.memo}
-                                                    </p>
-                                                )}
-                                            </div>
-
-                                            {/* Edit Button */}
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    openEditTaskForm(task);
-                                                }}
-                                                className="p-1 hover:bg-secondary/20 rounded transition-colors text-muted-foreground hover:text-foreground flex-shrink-0"
-                                            >
-                                                <Pencil className="h-4 w-4" />
-                                            </button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))
-                        )}
-                    </div>
-                )}
-
-                {/* Wishes Tab Content */}
-                {activeTab === "wishes" && (
-                    <div className="space-y-4">
-                        {/* Tag Filter */}
-                        <div className="flex flex-wrap gap-2">
-                            {tags.map((tag) => (
-                                <button
-                                    key={tag.id}
-                                    onClick={() => toggleTag(tag.name)}
-                                    className={cn(
-                                        "px-3 py-1 rounded-full text-xs font-medium transition-colors border",
-                                        selectedTags.includes(tag.name)
-                                            ? "bg-secondary text-secondary-foreground border-secondary"
-                                            : "bg-background text-muted-foreground border-input hover:border-secondary"
-                                    )}
-                                >
-                                    {tag.name}
-                                </button>
-                            ))}
+            <PullToRefresh onRefresh={handleRefresh}>
+                <div className="space-y-4">
+                    {/* Tab Header */}
+                    <div className="flex items-center justify-between">
+                        <div className="flex gap-1 p-1 bg-secondary/10 rounded-lg">
+                            <button
+                                onClick={() => setActiveTab("tasks")}
+                                className={cn(
+                                    "px-4 py-2 rounded-md text-sm font-medium transition-colors",
+                                    activeTab === "tasks"
+                                        ? "bg-background text-primary shadow-sm"
+                                        : "text-muted-foreground hover:text-foreground"
+                                )}
+                            >
+                                Tasks
+                            </button>
+                            <button
+                                onClick={() => setActiveTab("wishes")}
+                                className={cn(
+                                    "px-4 py-2 rounded-md text-sm font-medium transition-colors",
+                                    activeTab === "wishes"
+                                        ? "bg-background text-primary shadow-sm"
+                                        : "text-muted-foreground hover:text-foreground"
+                                )}
+                            >
+                                Wishes
+                            </button>
                         </div>
+                        <Button 
+                            variant="gold" 
+                            size="sm" 
+                            className="shadow-sm" 
+                            onClick={() => activeTab === "tasks" ? setIsTaskFormOpen(true) : setIsWishFormOpen(true)}
+                        >
+                            <Plus className="h-4 w-4 mr-1" />
+                            Add {activeTab === "tasks" ? "Task" : "Wish"}
+                        </Button>
+                    </div>
 
-                        <div className="grid gap-4">
-                            {filteredWishes.map((wish) => (
-                                <Card 
-                                    key={wish.id} 
-                                    className={cn(
-                                        "transition-opacity cursor-pointer hover:shadow-md", 
-                                        wish.status === "done" && "opacity-60"
-                                    )}
-                                    onClick={() => toggleWishStatus(wish.id)}
-                                >
-                                    <CardContent className="p-4">
-                                        <div className="flex items-start justify-between gap-3">
-                                            <div className="flex items-start gap-3 flex-1 min-w-0">
+                    {/* Tasks Tab Content */}
+                    {activeTab === "tasks" && (
+                        <div className="grid gap-3">
+                            {tasks.length === 0 ? (
+                                <div className="text-center py-12 text-muted-foreground">
+                                    <p>タスクがまだありません</p>
+                                </div>
+                            ) : (
+                                tasks.map((task) => (
+                                    <Card 
+                                        key={task.id} 
+                                        className={cn(
+                                            "transition-opacity cursor-pointer hover:shadow-md", 
+                                            task.is_done && "opacity-60"
+                                        )}
+                                        onClick={() => toggleTaskDone(task.id)}
+                                    >
+                                        <CardContent className="p-4">
+                                            <div className="flex items-start gap-3">
+                                                {/* Visual Check Status */}
                                                 <div
                                                     className={cn(
                                                         "h-6 w-6 rounded-full border border-primary flex items-center justify-center transition-colors flex-shrink-0 mt-0.5",
-                                                        wish.status === "done" ? "bg-primary text-primary-foreground" : "text-transparent"
+                                                        task.is_done ? "bg-primary text-primary-foreground" : "text-transparent"
                                                     )}
                                                 >
                                                     <Check className="h-4 w-4" />
                                                 </div>
-                                                <div className="flex-1 min-w-0 space-y-1.5">
-                                                    <h3 className={cn("font-medium text-lg leading-tight", wish.status === "done" && "line-through text-muted-foreground")}>
-                                                        {wish.title}
+
+                                                <div className="flex-1 min-w-0">
+                                                    <h3 className={cn("font-medium text-lg leading-tight", task.is_done && "line-through text-muted-foreground")}>
+                                                        {task.title}
                                                     </h3>
-                                                    {wish.tag && wish.tag.length > 0 && (
-                                                        <div className="flex flex-wrap gap-1">
-                                                            {wish.tag.map((t) => (
-                                                                <span
-                                                                    key={t}
-                                                                    className="text-xs px-2 py-0.5 rounded-full bg-secondary/20 text-secondary-foreground"
-                                                                >
-                                                                    {t}
-                                                                </span>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                    {wish.memo && (
-                                                        <p className="text-sm text-muted-foreground">
-                                                            {wish.memo}
+                                                    {task.memo && (
+                                                        <p className="text-sm text-muted-foreground mt-1">
+                                                            {task.memo}
                                                         </p>
                                                     )}
-                                                    {wish.address && (
-                                                        <div className="flex items-center gap-1.5 text-sm min-w-0">
-                                                            <a
-                                                                href={`geo:0,0?q=${encodeURIComponent(wish.address)}`}
-                                                                onClick={(e) => e.stopPropagation()}
-                                                                className="flex items-center gap-1 text-primary hover:text-primary/80 underline underline-offset-2 flex-1 min-w-0"
-                                                            >
-                                                                <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
-                                                                <span className="truncate">{wish.address}</span>
-                                                            </a>
-                                                            <CopyButton text={wish.address} />
-                                                        </div>
-                                                    )}
                                                 </div>
-                                            </div>
 
-                                            {/* Action Buttons */}
-                                            <div className="flex flex-col gap-2 flex-shrink-0">
-                                                {wish.status === "want" && (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            promoteToSchedule(wish);
-                                                        }}
-                                                        className="h-8 w-8 p-0"
-                                                        title="Add to Schedule"
-                                                    >
-                                                        <CalendarIcon className="h-4 w-4" />
-                                                    </Button>
-                                                )}
+                                                {/* Edit Button */}
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        openEditWishForm(wish);
+                                                        openEditTaskForm(task);
                                                     }}
-                                                    className="h-8 w-8 flex items-center justify-center hover:bg-secondary/20 rounded transition-colors text-muted-foreground hover:text-foreground"
-                                                    title="Edit"
+                                                    className="p-1 hover:bg-secondary/20 rounded transition-colors text-muted-foreground hover:text-foreground flex-shrink-0"
                                                 >
                                                     <Pencil className="h-4 w-4" />
                                                 </button>
                                             </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
+                                        </CardContent>
+                                    </Card>
+                                ))
+                            )}
                         </div>
-                    </div>
-                )}
-            </div>
+                    )}
+
+                    {/* Wishes Tab Content */}
+                    {activeTab === "wishes" && (
+                        <div className="space-y-4">
+                            {/* Tag Filter */}
+                            <div className="flex flex-wrap gap-2">
+                                {tags.map((tag) => (
+                                    <button
+                                        key={tag.id}
+                                        onClick={() => toggleTag(tag.name)}
+                                        className={cn(
+                                            "px-3 py-1 rounded-full text-xs font-medium transition-colors border",
+                                            selectedTags.includes(tag.name)
+                                                ? "bg-secondary text-secondary-foreground border-secondary"
+                                                : "bg-background text-muted-foreground border-input hover:border-secondary"
+                                        )}
+                                    >
+                                        {tag.name}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className="grid gap-4">
+                                {filteredWishes.length === 0 ? (
+                                    <div className="text-center py-12 text-muted-foreground">
+                                        <p>Wishがまだありません</p>
+                                    </div>
+                                ) : (
+                                    filteredWishes.map((wish) => (
+                                        <Card 
+                                            key={wish.id} 
+                                            className={cn(
+                                                "transition-opacity cursor-pointer hover:shadow-md", 
+                                                wish.status === "done" && "opacity-60"
+                                            )}
+                                            onClick={() => toggleWishStatus(wish.id)}
+                                        >
+                                            <CardContent className="p-4">
+                                                <div className="flex items-start justify-between gap-3">
+                                                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                                                        <div
+                                                            className={cn(
+                                                                "h-6 w-6 rounded-full border border-primary flex items-center justify-center transition-colors flex-shrink-0 mt-0.5",
+                                                                wish.status === "done" ? "bg-primary text-primary-foreground" : "text-transparent"
+                                                            )}
+                                                        >
+                                                            <Check className="h-4 w-4" />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0 space-y-1.5">
+                                                            <h3 className={cn("font-medium text-lg leading-tight", wish.status === "done" && "line-through text-muted-foreground")}>
+                                                                {wish.title}
+                                                            </h3>
+                                                            {wish.tag && wish.tag.length > 0 && (
+                                                                <div className="flex flex-wrap gap-1">
+                                                                    {wish.tag.map((t) => (
+                                                                        <span
+                                                                            key={t}
+                                                                            className="text-xs px-2 py-0.5 rounded-full bg-secondary/20 text-secondary-foreground"
+                                                                        >
+                                                                            {t}
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                            {wish.memo && (
+                                                                <p className="text-sm text-muted-foreground">
+                                                                    {wish.memo}
+                                                                </p>
+                                                            )}
+                                                            {wish.address && (
+                                                                <div className="flex items-center gap-1.5 text-sm min-w-0">
+                                                                    <a
+                                                                        href={`geo:0,0?q=${encodeURIComponent(wish.address)}`}
+                                                                        onClick={(e) => e.stopPropagation()}
+                                                                        className="flex items-center gap-1 text-primary hover:text-primary/80 underline underline-offset-2 flex-1 min-w-0"
+                                                                    >
+                                                                        <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+                                                                        <span className="truncate">{wish.address}</span>
+                                                                    </a>
+                                                                    <CopyButton text={wish.address} />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Action Buttons */}
+                                                    <div className="flex flex-col gap-2 flex-shrink-0">
+                                                        {wish.status === "want" && (
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    promoteToSchedule(wish);
+                                                                }}
+                                                                className="h-8 w-8 p-0"
+                                                                title="Add to Schedule"
+                                                            >
+                                                                <CalendarIcon className="h-4 w-4" />
+                                                            </Button>
+                                                        )}
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                openEditWishForm(wish);
+                                                            }}
+                                                            className="h-8 w-8 flex items-center justify-center hover:bg-secondary/20 rounded transition-colors text-muted-foreground hover:text-foreground"
+                                                            title="Edit"
+                                                        >
+                                                            <Pencil className="h-4 w-4" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </PullToRefresh>
 
             {/* Wish Form Modal */}
             <Modal isOpen={isWishFormOpen} onClose={closeWishForm} title={editingWish ? "Edit Wish" : "Add Wish"}>
-                <WishForm onSuccess={closeWishForm} initialData={editingWish} />
+                <WishForm 
+                    onSuccess={closeWishForm} 
+                    initialData={editingWish} 
+                    onDelete={handleDeleteWish}
+                    onUpdate={handleWishUpdate}
+                />
             </Modal>
 
             {/* Task Form Modal */}
@@ -412,7 +585,7 @@ export default function TasksWishesPage() {
                                 onClick={handleTaskDelete}
                                 className="text-red-600 hover:text-red-700 hover:bg-red-50"
                             >
-                                Delete
+                                <Trash2 className="h-5 w-5" />
                             </Button>
                         )}
                     </div>
