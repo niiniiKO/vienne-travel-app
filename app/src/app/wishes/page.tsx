@@ -177,7 +177,7 @@ export default function TasksWishesPage() {
             closeWishForm();
         } catch (err) {
             console.error("Failed to save wish:", err);
-            alert("Wishの保存に失敗しました");
+            alert(`Wishの保存に失敗しました: ${(err as Error).message || "Unknown error"}`);
         }
     };
 
@@ -195,7 +195,7 @@ export default function TasksWishesPage() {
             closeWishForm();
         } catch (err) {
             console.error("Failed to delete wish:", err);
-            alert("Wishの削除に失敗しました");
+            alert(`Wishの削除に失敗しました: ${(err as Error).message || "Unknown error"}`);
         }
     };
 
