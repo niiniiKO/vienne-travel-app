@@ -175,9 +175,10 @@ export default function TasksWishesPage() {
                 setWishes(wishes.map(w => w.id === wishData.id ? wishData : w));
             }
             closeWishForm();
-        } catch (err) {
-            console.error("Failed to save wish:", err);
-            alert("Wishの保存に失敗しました");
+        } catch (err: unknown) {
+            const error = err as { message?: string; code?: string; details?: string; hint?: string };
+            console.error("Failed to save wish:", error?.message || err, "Code:", error?.code, "Details:", error?.details, "Hint:", error?.hint);
+            alert(`Wishの保存に失敗しました: ${error?.message || "Unknown error"}`);
         }
     };
 
@@ -449,13 +450,13 @@ export default function TasksWishesPage() {
                                         <Card 
                                             key={wish.id} 
                                             className={cn(
-                                                "transition-opacity cursor-pointer hover:shadow-md", 
+                                                "transition-opacity cursor-pointer hover:shadow-md overflow-hidden", 
                                                 wish.status === "done" && "opacity-60"
                                             )}
                                             onClick={() => toggleWishStatus(wish.id)}
                                         >
                                             <CardContent className="p-4">
-                                                <div className="flex items-start justify-between gap-3">
+                                                <div className="flex items-start justify-between gap-3 overflow-hidden">
                                                     <div className="flex items-start gap-3 flex-1 min-w-0">
                                                         <div
                                                             className={cn(
@@ -465,8 +466,8 @@ export default function TasksWishesPage() {
                                                         >
                                                             <Check className="h-4 w-4" />
                                                         </div>
-                                                        <div className="flex-1 min-w-0 space-y-1.5">
-                                                            <h3 className={cn("font-medium text-lg leading-tight", wish.status === "done" && "line-through text-muted-foreground")}>
+                                                        <div className="flex-1 min-w-0 space-y-1.5 overflow-hidden">
+                                                            <h3 className={cn("font-medium text-lg leading-tight break-words", wish.status === "done" && "line-through text-muted-foreground")}>
                                                                 {wish.title}
                                                             </h3>
                                                             {wish.tag && wish.tag.length > 0 && (

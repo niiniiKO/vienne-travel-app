@@ -77,6 +77,7 @@ CREATE TABLE tasks (
 ALTER TABLE tags ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE schedules ENABLE ROW LEVEL SECURITY;
+ALTER TABLE wishes ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for tags (allow all operations for now - adjust as needed)
 CREATE POLICY "Allow all operations on tags" ON tags FOR ALL USING (true) WITH CHECK (true);
@@ -86,6 +87,9 @@ CREATE POLICY "Allow all operations on tasks" ON tasks FOR ALL USING (true) WITH
 
 -- Create policies for schedules (allow all operations for now - adjust as needed)
 CREATE POLICY "Allow all operations on schedules" ON schedules FOR ALL USING (true) WITH CHECK (true);
+
+-- Create policies for wishes (allow all operations for now - adjust as needed)
+CREATE POLICY "Allow all operations on wishes" ON wishes FOR ALL USING (true) WITH CHECK (true);
 
 -- Initial Data (Members)
 INSERT INTO profiles (name) VALUES ('青山'), ('浅田'), ('市川'), ('鬼澤');

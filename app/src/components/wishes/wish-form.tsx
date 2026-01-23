@@ -44,6 +44,7 @@ export function WishForm({ className, onSuccess, onDelete, onUpdate, initialData
 
         if (onUpdate) {
             onUpdate(wishData);
+            // onUpdate (handleWishUpdate) handles closing the form
         } else {
             console.log(wishData);
             alert(initialData ? "Wish updated (mock)!" : "Wish added (mock)!");

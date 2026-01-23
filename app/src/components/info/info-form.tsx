@@ -8,6 +8,8 @@ import { Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 
+type ContentType = "text" | "html";
+
 interface InfoFormProps {
     className?: string;
     onSuccess?: () => void;
@@ -19,7 +21,12 @@ interface InfoFormProps {
 
 export function InfoForm({ className, onSuccess, onDelete, onCreated, onUpdated, initialData }: InfoFormProps) {
     const [title, setTitle] = useState(initialData?.title || "");
-    const [contentText, setContentText] = useState(initialData?.content_text || "");
+    // Determine initial content type based on existing data
+    const initialContentType: ContentType = initialData?.content_html ? "html" : "text";
+    const [contentType, setContentType] = useState<ContentType>(initialContentType);
+    const [content, setContent] = useState(
+        initialData?.content_html || initialData?.content_text || ""
+    );
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -27,32 +34,31 @@ export function InfoForm({ className, onSuccess, onDelete, onCreated, onUpdated,
         setLoading(true);
 
         try {
+            const contentData = {
+                title,
+                content_text: contentType === "text" ? (content || null) : null,
+                content_html: contentType === "html" ? (content || null) : null,
+            };
+
             if (initialData) {
                 // Update existing info
                 const { error } = await supabase
                     .from("infos")
-                    .update({
-                        title,
-                        content_text: contentText || null,
-                    })
+                    .update(contentData)
                     .eq("id", initialData.id);
                 
                 if (error) throw error;
                 
                 const updatedInfo: Info = {
                     ...initialData,
-                    title,
-                    content_text: contentText || null,
+                    ...contentData,
                 };
                 onUpdated?.(updatedInfo);
             } else {
                 // Create new info
                 const { data, error } = await supabase
                     .from("infos")
-                    .insert({
-                        title,
-                        content_text: contentText || null,
-                    })
+                    .insert(contentData)
                     .select()
                     .single();
                 
@@ -106,12 +112,49 @@ export function InfoForm({ className, onSuccess, onDelete, onCreated, onUpdated,
             </div>
 
             <div className="space-y-2">
-                <label className="text-sm font-medium">Content</label>
+                <label className="text-sm font-medium">Content Type</label>
+                <div className="flex gap-2">
+                    <button
+                        type="button"
+                        onClick={() => setContentType("text")}
+                        className={cn(
+                            "flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors border",
+                            contentType === "text"
+                                ? "bg-primary text-primary-foreground border-primary"
+                                : "bg-background text-muted-foreground border-input hover:border-primary"
+                        )}
+                        disabled={loading}
+                    >
+                        テキスト
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setContentType("html")}
+                        className={cn(
+                            "flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors border",
+                            contentType === "html"
+                                ? "bg-primary text-primary-foreground border-primary"
+                                : "bg-background text-muted-foreground border-input hover:border-primary"
+                        )}
+                        disabled={loading}
+                    >
+                        HTML
+                    </button>
+                </div>
+            </div>
+
+            <div className="space-y-2">
+                <label className="text-sm font-medium">
+                    Content {contentType === "html" && <span className="text-xs text-muted-foreground">(HTMLタグが使えます)</span>}
+                </label>
                 <textarea
-                    className="w-full min-h-[200px] px-3 py-2 rounded-md border border-input bg-background text-sm resize-none"
-                    placeholder="情報の内容を入力..."
-                    value={contentText}
-                    onChange={(e) => setContentText(e.target.value)}
+                    className={cn(
+                        "w-full min-h-[200px] px-3 py-2 rounded-md border border-input bg-background text-sm resize-none",
+                        contentType === "html" && "font-mono text-xs"
+                    )}
+                    placeholder={contentType === "html" ? "<h2>見出し</h2>\n<p>本文...</p>" : "情報の内容を入力..."}
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
                     disabled={loading}
                 />
             </div>
