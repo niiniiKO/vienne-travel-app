@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Info } from "@/types/database";
 import { Card, CardContent } from "@/components/ui/card";
-import { FileText, Plus, Trash2, Loader2 } from "lucide-react";
+import { FileText, Plus, Trash2, Loader2, MapPin, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { InfoForm } from "@/components/info/info-form";
@@ -76,6 +76,21 @@ export default function InfoPage() {
         );
     }
 
+    const guidePages = [
+        {
+            title: "ウィーン観光ガイド",
+            description: "ウィーン主要文化遺産ガイド 2026.02",
+            href: "/vienna-guide.html",
+            emoji: "🇦🇹",
+        },
+        {
+            title: "プラハ観光ガイド",
+            description: "プラハ冬旅ガイド 2026",
+            href: "/prague-guide.html",
+            emoji: "🇨🇿",
+        },
+    ];
+
     return (
         <>
             <PullToRefresh onRefresh={handleRefresh}>
@@ -90,6 +105,41 @@ export default function InfoPage() {
                             <Plus className="h-4 w-4 mr-1" />
                             Add Info
                         </Button>
+                    </div>
+
+                    {/* 観光地ガイドカード */}
+                    <div className="space-y-2">
+                        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                            <MapPin className="h-4 w-4" />
+                            観光ガイド
+                        </h3>
+                        <div className="grid gap-3">
+                            {guidePages.map((guide) => (
+                                <a
+                                    key={guide.href}
+                                    href={guide.href}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    <Card className="cursor-pointer transition-all hover:shadow-md hover:border-primary/50 bg-gradient-to-r from-card to-secondary/5">
+                                        <CardContent className="p-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="text-3xl">{guide.emoji}</div>
+                                                <div className="flex-1 min-w-0">
+                                                    <h3 className="font-bold text-lg leading-tight">
+                                                        {guide.title}
+                                                    </h3>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {guide.description}
+                                                    </p>
+                                                </div>
+                                                <ExternalLink className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </a>
+                            ))}
+                        </div>
                     </div>
 
                     {infos.length === 0 ? (

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ウィーン主要文化遺産ガイド 2026.02</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #f8f9fa;
+            color: #2d3748;
+        }
+        h1, h2, h3, .serif {
+            font-family: 'Playfair+Display', serif;
+        }
+        .imperial-gold {
+            color: #C5A059;
+        }
+        .bg-imperial-gold {
+            background-color: #C5A059;
+        }
+        .imperial-red {
+            color: #8B0000;
+        }
+        .bg-imperial-red {
+            background-color: #8B0000;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .hero-pattern {
+            background-color: #1a202c;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%232d3748' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md fixed w-full z-50 top-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-xl font-bold serif tracking-wider text-gray-800"><i class="fas fa-landmark mr-2 imperial-gold"></i>Vienna 2026</span>
+                </div>
+                <div class="hidden md:flex items-center space-x-4 text-sm font-medium text-gray-600">
+                    <a href="#opera" class="hover:text-gray-900 transition">オペラ座</a>
+                    <a href="#stephansdom" class="hover:text-gray-900 transition">シュテファン</a>
+                    <a href="#schonbrunn" class="hover:text-gray-900 transition">シェーンブルン</a>
+                    <a href="#hofburg" class="hover:text-gray-900 transition">ホーフブルク</a>
+                    <a href="#khm" class="hover:text-gray-900 transition">美術史美術館</a>
+                    <a href="#strategy" class="bg-gray-900 text-white px-4 py-2 rounded-full hover:bg-gray-700 transition">戦略まとめ</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero-pattern text-white pt-32 pb-20 px-4">
+        <div class="max-w-4xl mx-auto text-center">
+            <span class="inline-block bg-imperial-gold text-black text-xs font-bold px-3 py-1 rounded mb-4 tracking-widest uppercase">Target: Young Travelers (24-25yo)</span>
+            <h1 class="text-4xl md:text-6xl font-bold mb-6 leading-tight">ウィーン主要文化遺産<br>ロジスティクス調査報告</h1>
+            <p class="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
+                2026年2月19日〜21日の滞在に最適化された、若年層旅行者のための戦略的ガイド。<br>
+                テーマ：「Vienna Bites（食）」と「冬季の文化体験」
+            </p>
+            <div class="flex justify-center gap-4 text-sm">
+                <div class="flex items-center"><i class="far fa-calendar-alt mr-2 text-yellow-500"></i> 2026.02.19 - 02.21</div>
+                <div class="flex items-center"><i class="fas fa-snowflake mr-2 text-blue-400"></i> 冬季運営</div>
+                <div class="flex items-center"><i class="fas fa-id-card mr-2 text-green-400"></i> ISIC必須</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Introduction Cards -->
+    <div class="max-w-7xl mx-auto px-4 -mt-10 relative z-10 grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+        <div class="bg-white p-6 rounded-lg shadow-lg border-t-4 border-yellow-500">
+            <h3 class="font-bold text-lg mb-2"><i class="fas fa-utensils mr-2 text-yellow-600"></i>Vienna Bites 2026</h3>
+            <p class="text-sm text-gray-600">2026年の観光テーマは「食」。文化施設内のカフェ文化や冬季限定のガストロノミー体験が鍵となります。</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-lg border-t-4 border-red-800">
+            <h3 class="font-bold text-lg mb-2"><i class="fas fa-graduation-cap mr-2 text-red-800"></i>学生割引の厳格化</h3>
+            <p class="text-sm text-gray-600">日本の学生証はほぼ通用しません。<span class="font-bold text-red-600">国際学生証（ISIC）</span>の持参が割引適用の絶対条件です。</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-lg border-t-4 border-blue-600">
+            <h3 class="font-bold text-lg mb-2"><i class="fas fa-temperature-low mr-2 text-blue-600"></i>冬季の利点</h3>
+            <p class="text-sm text-gray-600">混雑の緩和、室内展示の充実、そして17:20頃の日没に合わせたトワイライトの絶景を活用します。</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 pb-20 space-y-20">
+
+        <!-- 1. 国立オペラ座 -->
+        <section id="opera" class="bg-white rounded-2xl shadow-xl overflow-hidden scroll-mt-24">
+            <div class="md:flex">
+                <div class="md:w-1/3 bg-gray-200 h-64 md:h-auto relative overflow-hidden group">
+                    <!-- Placeholder Image -->
+                    <div class="absolute inset-0 bg-gray-800 flex items-center justify-center text-white">
+                        <div class="text-center">
+                            <i class="fas fa-theater-masks text-5xl mb-3 opacity-50"></i>
+                            <p class="font-serif text-xl">Wiener Staatsoper</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="md:w-2/3 p-8">
+                    <div class="flex justify-between items-start mb-4">
+                        <h2 class="text-3xl font-bold text-gray-800 serif">1. 国立オペラ座</h2>
+                        <span class="bg-red-100 text-red-800 text-xs font-bold px-2 py-1 rounded">要予約 (ツアー)</span>
+                    </div>
+                    <p class="text-gray-600 mb-6">舞踏会（Opernball）後の撤収が完了し、通常公演へ移行する端境期。舞台裏の「生きた」様子が見られる貴重なタイミングです。</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-bold text-sm text-gray-500 uppercase mb-2">ロジスティクス</h4>
+                            <ul class="space-y-2 text-sm">
+                                <li class="flex items-center"><i class="fas fa-clock w-6 text-center text-gray-400"></i> ツアー: 13:00 - 15:00 (目安)</li>
+                                <li class="flex items-center"><i class="fas fa-euro-sign w-6 text-center text-gray-400"></i> 学生(U27): €9.00 <span class="text-red-500 text-xs ml-2">*ISIC必須</span></li>
+                                <li class="flex items-center"><i class="fas fa-map-marker-alt w-6 text-center text-gray-400"></i> Karlsplatz駅 (徒歩2分)</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-sm text-gray-500 uppercase mb-2">実務的洞察</h4>
+                            <div class="bg-gray-50 p-3 rounded border-l-4 border-imperial-red text-sm">
+                                <p class="mb-2"><strong>混雑予測:</strong> ツアー定員30名制限のため、オンライン事前予約が必須。当日券はリスクが高い。</p>
+                                <p><strong>冬季環境:</strong> 劇場内は暖かく快適。マーラー・ホールの装飾はこの時期特に輝いて見えます。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. シュテファン寺院 -->
+        <section id="stephansdom" class="bg-white rounded-2xl shadow-xl overflow-hidden scroll-mt-24">
+            <div class="md:flex flex-row-reverse">
+                <div class="md:w-1/3 bg-gray-200 h-64 md:h-auto relative">
+                     <div class="absolute inset-0 bg-gray-700 flex items-center justify-center text-white">
+                        <div class="text-center">
+                            <i class="fas fa-church text-5xl mb-3 opacity-50"></i>
+                            <p class="font-serif text-xl">Stephansdom</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="md:w-2/3 p-8">
+                    <div class="flex justify-between items-start mb-4">
+                        <h2 class="text-3xl font-bold text-gray-800 serif">2. シュテファン寺院</h2>
+                        <span class="bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded">予約不要 (現地購入)</span>
+                    </div>
+                    <p class="text-gray-600 mb-6">ウィーンの魂。地下のカタコンベから塔からの眺望まで、立体的な観光が可能。活動拠点からのアクセスは実質0分。</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-bold text-sm text-gray-500 uppercase mb-2">見学ポイント</h4>
+                            <ul class="space-y-2 text-sm">
+                                <li class="flex items-start"><span class="font-bold mr-2">北塔:</span> エレベーターあり。日没(17:20頃)の夕景がベスト。</li>
+                                <li class="flex items-start"><span class="font-bold mr-2">カタコンベ:</span> ガイドツアーのみ。13:30直後は混雑、15時頃推奨。</li>
+                                <li class="flex items-start"><span class="font-bold mr-2">南塔:</span> 343段の階段。冬服での昇降は汗冷えに注意。</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-sm text-gray-500 uppercase mb-2">コスト戦略</h4>
+                            <div class="bg-gray-50 p-3 rounded border-l-4 border-gray-600 text-sm">
+                                <p class="mb-2"><strong>All Inclusive:</strong> €25.00 (推奨)</p>
+                                <p>24歳以上は基本的に大人料金適用。個別の学生割引交渉より、オールインクルーシブチケットが合理的です。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. シェーンブルン宮殿 -->
+        <section id="schonbrunn" class="bg-white rounded-2xl shadow-xl overflow-hidden scroll-mt-24">
+            <div class="md:flex">
+                <div class="md:w-1/3 bg-yellow-100 h-64 md:h-auto relative">
+                     <div class="absolute inset-0 bg-yellow-600 flex items-center justify-center text-white">
+                        <div class="text-center">
+                            <i class="fas fa-crown text-5xl mb-3 opacity-50"></i>
+                            <p class="font-serif text-xl">Schloß Schönbrunn</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="md:w-2/3 p-8">
+                    <div class="flex justify-between items-start mb-4">
+                        <h2 class="text-3xl font-bold text-gray-800 serif">3. シェーンブルン宮殿</h2>
+                        <span class="bg-red-100 text-red-800 text-xs font-bold px-2 py-1 rounded">オンライン予約必須</span>
+                    </div>
+                    <p class="text-gray-600 mb-6">ハプスブルク家の夏の離宮。冬は静寂な美しさが際立ちます。「Vienna Bites」に関連したアプフェルシュトルーデル・ショーも注目。</p>
+                    
+                    <div class="bg-red-50 p-4 rounded-lg mb-6 flex items-start">
+                        <i class="fas fa-exclamation-circle text-red-600 mt-1 mr-3"></i>
+                        <div>
+                            <h4 class="font-bold text-red-800 text-sm">最も厳格なIDチェック</h4>
+                            <p class="text-sm text-red-700">19-25歳の学生割引（約€5OFF）にはISICが不可欠です。提示がない場合、正規料金を請求されます。</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                        <div>
+                            <h4 class="font-bold text-gray-500 uppercase mb-2">アクセス</h4>
+                            <p>Stephansplatz (U1) → Karlsplatz (U4/緑) → Schönbrunn駅。所要約30分。</p>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-gray-500 uppercase mb-2">推奨チケット</h4>
+                            <p><strong>グランド・ツアー:</strong> 40室見学。午前中のスロット確保推奨。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4 & 5. ホーフブルク & KHM (Grid) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- 4. ホーフブルク -->
+            <section id="hofburg" class="bg-white rounded-2xl shadow-lg p-6 scroll-mt-24">
+                <div class="flex items-center mb-4">
+                     <i class="fas fa-landmark text-3xl text-gray-400 mr-4"></i>
+                     <h2 class="text-2xl font-bold serif">4. ホーフブルク王宮</h2>
+                </div>
+                <p class="text-gray-600 text-sm mb-4">シシィ博物館、皇帝の住居。シュテファン広場から徒歩圏内の「帝国の心臓部」。</p>
+                <div class="space-y-3">
+                    <div class="flex justify-between text-sm border-b pb-2">
+                        <span>学生 (19-25)</span>
+                        <span class="font-bold">€18.00 (ISIC必須)</span>
+                    </div>
+                    <div class="bg-gray-100 p-3 rounded text-sm">
+                        <span class="block font-bold mb-1"><i class="fas fa-lightbulb text-yellow-500 mr-1"></i>Sisi Passの検討</span>
+                        シェーンブルン宮殿も行くなら「Sisi Pass (€57)」がお得。予約の手間も省けます。
+                    </div>
+                    <div class="text-xs text-gray-500 mt-2">
+                        <i class="fas fa-walking mr-1"></i> コールマルクト経由で徒歩5-8分
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. 美術史博物館 -->
+            <section id="khm" class="bg-white rounded-2xl shadow-lg p-6 border-2 border-imperial-gold scroll-mt-24 relative">
+                <div class="absolute top-0 right-0 bg-imperial-gold text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
+                    Best Value
+                </div>
+                <div class="flex items-center mb-4">
+                     <i class="fas fa-palette text-3xl text-imperial-gold mr-4"></i>
+                     <h2 class="text-2xl font-bold serif">5. 美術史博物館 (KHM)</h2>
+                </div>
+                <p class="text-gray-600 text-sm mb-4">ブリューゲル「雪中の狩人」は必見。世界で最も美しいカフェでの休憩はマスト。</p>
+                
+                <div class="space-y-3">
+                    <div class="bg-yellow-50 p-3 rounded text-sm border border-yellow-200">
+                        <span class="block font-bold mb-1 text-yellow-800"><i class="fas fa-star mr-1"></i>7 Museums Pass U25</span>
+                        <p class="mb-1">25歳以下限定の最強パス。<strong>€30.00</strong>。</p>
+                        <p class="text-xs text-gray-600">KHM(€19)と王宮宝物館(€16)に行くだけで元が取れます。</p>
+                    </div>
+                    <div class="text-xs text-gray-500 flex justify-between">
+                        <span><i class="fas fa-clock mr-1"></i>木曜は21時まで (2/19推奨)</span>
+                        <span><i class="fas fa-exclamation mr-1"></i>特別展終了間際で混雑予想</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- 6 & 7. 楽友協会 & ゼーグロッテ (Grid) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- 6. 楽友協会 -->
+            <section class="bg-white rounded-2xl shadow-lg p-6 scroll-mt-24">
+                 <div class="flex items-center mb-4">
+                     <i class="fas fa-music text-3xl text-gray-400 mr-4"></i>
+                     <h2 class="text-2xl font-bold serif">6. 楽友協会</h2>
+                </div>
+                <p class="text-sm text-gray-600 mb-4">ニューイヤーコンサートの会場。リハーサル状況によりツアー時間が頻繁に変更されます。</p>
+                <ul class="text-sm space-y-2 mb-4">
+                    <li class="flex justify-between"><span class="text-gray-500">2/19 (木)</span> <span>13:00 / 13:45 (予想)</span></li>
+                    <li class="flex justify-between"><span class="text-gray-500">2/20 (金)</span> <span>13:00 / 16:00 (予想)</span></li>
+                    <li class="flex justify-between"><span class="text-gray-500">2/21 (土)</span> <span>午前中枠多め (推奨)</span></li>
+                </ul>
+                <div class="bg-gray-100 px-3 py-2 rounded text-xs text-center">
+                    <i class="fas fa-mouse-pointer mr-1"></i> オンライン予約必須（定員制）
+                </div>
+            </section>
+
+            <!-- 7. ゼーグロッテ -->
+            <section class="bg-white rounded-2xl shadow-lg p-6 scroll-mt-24">
+                 <div class="flex items-center mb-4">
+                     <i class="fas fa-water text-3xl text-blue-400 mr-4"></i>
+                     <h2 class="text-2xl font-bold serif">7. ゼーグロッテ地底湖</h2>
+                </div>
+                <p class="text-sm text-gray-600 mb-4">ヨーロッパ最大の地底湖＆元ナチス秘密工場。郊外のアドベンチャー。</p>
+                <div class="space-y-2 text-sm">
+                    <div class="flex items-center text-blue-600 font-bold">
+                        <i class="fas fa-temperature-low w-6"></i> 坑内気温 9℃ (防寒・ブーツ必須)
+                    </div>
+                    <div class="flex items-start">
+                        <i class="fas fa-bus w-6 mt-1 text-gray-400"></i>
+                        <span>
+                            U1 (Stephansplatz) → S-Bahn (Mödling) → Bus 264/364。<br>
+                            片道約1時間15分。
+                        </span>
+                    </div>
+                    <div class="text-gray-500 text-xs mt-2">
+                        ※予約不要。24-25歳は大人料金(€20程度)想定。
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Strategy Summary -->
+        <section id="strategy" class="bg-gray-800 text-white rounded-2xl p-8 scroll-mt-24">
+            <h2 class="text-3xl font-bold serif mb-6 text-center text-imperial-gold">戦略的推奨事項 (Conclusion)</h2>
+            
+            <div class="mb-8">
+                <h3 class="font-bold text-lg mb-4 border-b border-gray-600 pb-2">チケット最適化チャート</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="text-gray-400 uppercase bg-gray-700">
+                            <tr>
+                                <th class="px-4 py-3">チケット名</th>
+                                <th class="px-4 py-3">価格(目安)</th>
+                                <th class="px-4 py-3">対象・判定</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-700">
+                            <tr>
+                                <td class="px-4 py-3 font-bold text-imperial-gold">7 Museums Pass U25</td>
+                                <td class="px-4 py-3">€30.00</td>
+                                <td class="px-4 py-3">
+                                    <span class="bg-green-600 text-xs px-2 py-1 rounded">必須</span>
+                                    KHMと宝物館に行くなら最強。
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3">Sisi Pass</td>
+                                <td class="px-4 py-3">€57.00</td>
+                                <td class="px-4 py-3">
+                                    <span class="bg-blue-600 text-xs px-2 py-1 rounded">検討</span>
+                                    シェーンブルン+王宮+家具博物館。個別予約の手間なし。
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3">Vienna PASS</td>
+                                <td class="px-4 py-3">高額</td>
+                                <td class="px-4 py-3">
+                                    <span class="bg-gray-600 text-xs px-2 py-1 rounded">不要</span>
+                                    24-25歳の弾丸旅行には元が取りにくい。
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+                <div class="bg-gray-700 p-4 rounded">
+                    <h4 class="font-bold text-imperial-gold mb-2">1. ISICの携行</h4>
+                    <p>何度も強調しますが、ISICがないと学生割引は受けられません。日本で発行して持参してください。</p>
+                </div>
+                <div class="bg-gray-700 p-4 rounded">
+                    <h4 class="font-bold text-imperial-gold mb-2">2. 時間帯戦略</h4>
+                    <p>日没（17:20）は北塔かシェーンブルンの丘へ。日中の寒い時間は博物館かカフェへ避難。</p>
+                </div>
+                <div class="bg-gray-700 p-4 rounded">
+                    <h4 class="font-bold text-imperial-gold mb-2">3. 食 (Vienna Bites)</h4>
+                    <p>KHMのカフェや宮殿のアプフェルシュトルーデルなど、観光と「食」をセットで体験してください。</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-500 text-center py-8 text-sm">
+        <p>Based on: 2026年2月におけるウィーン主要文化遺産の学術的・実務的調査報告</p>
+        <p class="mt-2">&copy; 2026 Vienna Logistics Guide for Young Travelers</p>
+    </footer>
+
+    <!-- Scroll to Top Button -->
+    <a href="#" class="fixed bottom-6 right-6 bg-imperial-gold text-black p-3 rounded-full shadow-lg hover:bg-yellow-400 transition z-50">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+
+</body>
+</html>
