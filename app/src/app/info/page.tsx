@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Info } from "@/types/database";
 import { Card, CardContent } from "@/components/ui/card";
-import { FileText, Plus, Trash2, Loader2, MapPin, ExternalLink } from "lucide-react";
+import { FileText, Plus, Trash2, Loader2, MapPin, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { InfoForm } from "@/components/info/info-form";
@@ -80,13 +80,13 @@ export default function InfoPage() {
         {
             title: "ウィーン観光ガイド",
             description: "ウィーン主要文化遺産ガイド 2026.02",
-            href: "/vienna-guide.html",
+            href: "/info/guide/vienna",
             emoji: "🇦🇹",
         },
         {
             title: "プラハ観光ガイド",
             description: "プラハ冬旅ガイド 2026",
-            href: "/prague-guide.html",
+            href: "/info/guide/prague",
             emoji: "🇨🇿",
         },
     ];
@@ -115,11 +115,9 @@ export default function InfoPage() {
                         </h3>
                         <div className="grid gap-3">
                             {guidePages.map((guide) => (
-                                <a
+                                <Link
                                     key={guide.href}
                                     href={guide.href}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
                                 >
                                     <Card className="cursor-pointer transition-all hover:shadow-md hover:border-primary/50 bg-gradient-to-r from-card to-secondary/5">
                                         <CardContent className="p-4">
@@ -133,11 +131,11 @@ export default function InfoPage() {
                                                         {guide.description}
                                                     </p>
                                                 </div>
-                                                <ExternalLink className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                                <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                                             </div>
                                         </CardContent>
                                     </Card>
-                                </a>
+                                </Link>
                             ))}
                         </div>
                     </div>
