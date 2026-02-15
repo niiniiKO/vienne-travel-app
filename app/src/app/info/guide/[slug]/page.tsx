@@ -12,6 +12,10 @@ const guides: Record<string, { title: string; file: string }> = {
         title: "プラハ観光ガイド",
         file: "/prague-guide.html",
     },
+    tickets: {
+        title: "チケット購入ガイド",
+        file: "/ticket-guide.html",
+    },
 };
 
 export default function GuidePage() {

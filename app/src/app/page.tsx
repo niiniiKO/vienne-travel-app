@@ -104,6 +104,7 @@ export default function Home() {
         if (schedule.tag && schedule.tag.length > 0) insertData.tag = schedule.tag;
         if (schedule.memo) insertData.memo = schedule.memo;
         if (schedule.event_type) insertData.event_type = schedule.event_type;
+        if (schedule.url) insertData.url = schedule.url;
         
         const { data, error } = await supabase
           .from("schedules")
@@ -129,6 +130,7 @@ export default function Home() {
         if (schedule.tag !== undefined) updateData.tag = schedule.tag;
         if (schedule.memo !== undefined) updateData.memo = schedule.memo;
         if (schedule.event_type !== undefined) updateData.event_type = schedule.event_type;
+        if (schedule.url !== undefined) updateData.url = schedule.url;
         
         const { error } = await supabase
           .from("schedules")

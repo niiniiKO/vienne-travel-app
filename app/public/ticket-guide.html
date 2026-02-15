@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>観光地チケットリンク集</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #f3f4f6;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .btn-press:active {
+            transform: scale(0.98);
+        }
+        /* Hide scrollbar for tab navigation */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 pb-20">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-md mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-gray-800">
+                <i class="fa-solid fa-ticket text-indigo-600 mr-2"></i>Travel Tickets
+            </h1>
+            <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="text-gray-400 hover:text-indigo-600">
+                <i class="fa-solid fa-arrow-up"></i>
+            </button>
+        </div>
+
+        <!-- City Filter Tabs -->
+        <div class="max-w-md mx-auto px-2 pb-2">
+            <div class="flex space-x-2 bg-gray-100 p-1 rounded-xl">
+                <button onclick="filterCity('all')" id="tab-all" class="flex-1 py-2 text-sm font-bold rounded-lg transition-all shadow-sm bg-white text-indigo-600">
+                    すべて
+                </button>
+                <button onclick="filterCity('Prague')" id="tab-prague" class="flex-1 py-2 text-sm font-medium rounded-lg transition-all text-gray-500 hover:text-indigo-600">
+                    🇨🇿 プラハ
+                </button>
+                <button onclick="filterCity('Vienna')" id="tab-vienna" class="flex-1 py-2 text-sm font-medium rounded-lg transition-all text-gray-500 hover:text-indigo-600">
+                    🇦🇹 ウィーン
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-md mx-auto px-4 py-4 space-y-4" id="attractions-container">
+        <!-- Content will be injected by JS -->
+    </main>
+
+    <!-- Footer / Notes -->
+    <footer class="max-w-md mx-auto px-4 mt-8 mb-12 text-xs text-gray-500 text-center">
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4 text-left">
+            <p class="font-bold text-yellow-800 mb-1"><i class="fa-solid fa-circle-info mr-1"></i> 注意事項</p>
+            <ul class="list-disc list-inside space-y-1 text-yellow-700">
+                <li>学生割引利用時は国際学生証（ISIC）をご用意ください。</li>
+                <li>オンライン購入時は日付・時間指定が必要な場合があります。</li>
+                <li>価格や情報は変更される可能性があります。</li>
+            </ul>
+        </div>
+        <p>&copy; 2024 Travel Ticket Helper</p>
+    </footer>
+
+    <!-- Data & Logic -->
+    <script>
+        const attractions = [
+            // --- Prague ---
+            {
+                id: 1,
+                city: 'Prague',
+                name: '国立美術館 (National Gallery)',
+                localName: 'Národní galerie Praha',
+                officialUrl: 'https://www.ngprague.cz/en/about/admission',
+                ticketUrl: 'https://www.ngprague.cz/en/about/admission',
+                price: '建物により異なる (Trade Fair Palace: 250 CZK)',
+                studentPrice: '割引あり',
+                note: null,
+                tags: ['Art', 'Museum']
+            },
+            {
+                id: 2,
+                city: 'Prague',
+                name: '旧市庁舎の塔 (Old Town Hall Tower)',
+                localName: 'Staroměstská radnice',
+                officialUrl: 'https://www.staromestskaradnicepraha.cz/en/',
+                ticketUrl: null, // 現地推奨のためリンクなし、あるいは公式サイトへ
+                price: '450 CZK (エレベーター +100 CZK)',
+                studentPrice: null,
+                note: '現地購入のみ推奨',
+                tags: ['View', 'History'],
+                warning: '現地購入推奨'
+            },
+            {
+                id: 3,
+                city: 'Prague',
+                name: 'セドレツ納骨堂 (Sedlec Ossuary)',
+                localName: 'Kostnice Sedlec',
+                officialUrl: 'https://www.sedlec.info/en/reservation/',
+                ticketUrl: 'https://www.sedlec.info/en/reservation/',
+                price: '大人 220 CZK',
+                studentPrice: '学生 150 CZK',
+                note: 'オンライン予約必須',
+                tags: ['Unique', 'History'],
+                important: '予約必須'
+            },
+            {
+                id: 4,
+                city: 'Prague',
+                name: 'カレル橋 (Charles Bridge)',
+                localName: 'Karlův most',
+                officialUrl: null,
+                ticketUrl: null,
+                price: '無料',
+                studentPrice: null,
+                note: 'チケット不要で通行可能',
+                tags: ['Landmark', 'Free'],
+                isFree: true
+            },
+            {
+                id: 5,
+                city: 'Prague',
+                name: 'プラハ城 (Prague Castle)',
+                localName: 'Pražský hrad',
+                officialUrl: 'https://www.hrad.cz/en/prague-castle-for-visitors/tickets',
+                ticketUrl: 'https://www.hrad.cz/en/prague-castle-for-visitors/tickets',
+                price: 'Main Circuit 450 CZK',
+                studentPrice: null,
+                note: 'Main Circuitのみオンライン購入可',
+                tags: ['Landmark', 'History']
+            },
+            // --- Vienna ---
+            {
+                id: 6,
+                city: 'Vienna',
+                name: 'ウィーン国立劇場 (Wiener Staatsoper)',
+                localName: 'Wiener Staatsoper',
+                officialUrl: 'https://www.wiener-staatsoper.at/en/guided-tours/',
+                ticketUrl: 'https://www.wiener-staatsoper.at/en/guided-tours/',
+                price: 'ガイドツアー 大人 15€',
+                studentPrice: '学生(U27) 9€',
+                note: 'オンライン予約可能',
+                tags: ['Art', 'Music']
+            },
+            {
+                id: 7,
+                city: 'Vienna',
+                name: 'シェーンブルン宮殿',
+                localName: 'Schönbrunn Palace',
+                officialUrl: 'https://www.imperialtickets.com/en/schoenbrunn-palace/grand-tour-schoenbrunn-palace/45',
+                ticketUrl: 'https://www.imperialtickets.com/en/schoenbrunn-palace/grand-tour-schoenbrunn-palace/45',
+                price: 'Grand Tour 27€ (学生価格あり)',
+                studentPrice: 'Imperial Tour 22€',
+                note: 'オンライン購入推奨',
+                tags: ['History', 'Palace'],
+                recommend: 'オンライン推奨'
+            },
+            {
+                id: 8,
+                city: 'Vienna',
+                name: '美術史博物館',
+                localName: 'Kunsthistorisches Museum',
+                officialUrl: 'https://shop.khm.at/en/tickets',
+                ticketUrl: 'https://shop.khm.at/en/tickets/kunsthistorisches-museum-wien-200000000001132-T003-01',
+                price: 'オンライン 22€ / 現地 24€',
+                studentPrice: '19歳未満無料 / 学生割引あり',
+                note: 'オンラインが少し安い',
+                tags: ['Art', 'Museum']
+            },
+            {
+                id: 9,
+                city: 'Vienna',
+                name: '王宮 (Hofburg)',
+                localName: 'Hofburg Wien',
+                officialUrl: 'https://www.imperialtickets.com/en/hofburg-vienna/sisi-museum-hofburg-vienna-ticket/181',
+                ticketUrl: 'https://www.imperialtickets.com/en/hofburg-vienna/sisi-museum-hofburg-vienna-ticket/181',
+                price: 'シシィ博物館 18€ (学生)',
+                studentPrice: 'シシィ・チケット 49€',
+                note: 'シシィ博物館+皇帝の部屋',
+                tags: ['History', 'Museum']
+            },
+            {
+                id: 10,
+                city: 'Vienna',
+                name: 'シュテファン寺院',
+                localName: 'Stephansdom',
+                officialUrl: 'https://www.stephanskirche.at/info.php',
+                ticketUrl: 'https://www.stephanskirche.at/info.php',
+                price: 'All-Inclusive 25€',
+                studentPrice: null,
+                note: '現地は現金のみ。オンライン予約可',
+                tags: ['Religion', 'View'],
+                warning: '現地現金のみ'
+            }
+        ];
+
+        const container = document.getElementById('attractions-container');
+
+        function renderAttractions(filter = 'all') {
+            container.innerHTML = '';
+            
+            const filteredData = attractions.filter(item => 
+                filter === 'all' ? true : item.city === filter
+            );
+
+            if (filteredData.length === 0) {
+                container.innerHTML = '<div class="text-center text-gray-500 py-10">該当する施設がありません</div>';
+                return;
+            }
+
+            filteredData.forEach(item => {
+                const isPrague = item.city === 'Prague';
+                const cityColor = isPrague ? 'text-purple-600' : 'text-teal-600';
+                const cityBg = isPrague ? 'bg-purple-50' : 'bg-teal-50';
+                const cityBadge = isPrague ? 'CZ' : 'AT';
+
+                // Button Logic
+                let mainButton = '';
+                if (item.isFree) {
+                    mainButton = `
+                        <div class="w-full bg-green-100 text-green-700 font-bold py-3 rounded-lg text-center border border-green-200">
+                            <i class="fa-regular fa-face-smile mr-2"></i>チケット不要 (無料)
+                        </div>`;
+                } else if (item.ticketUrl) {
+                    mainButton = `
+                        <a href="${item.ticketUrl}" target="_blank" class="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg text-center shadow-md transition-colors btn-press">
+                            <i class="fa-solid fa-cart-shopping mr-2"></i>チケット購入
+                        </a>`;
+                } else {
+                    mainButton = `
+                         <div class="w-full bg-gray-100 text-gray-500 font-bold py-3 rounded-lg text-center border border-gray-200">
+                            <i class="fa-solid fa-store mr-2"></i>現地購入のみ
+                        </div>`;
+                }
+
+                // Official Site Button (Secondary)
+                let secondaryButton = '';
+                if (item.officialUrl && item.officialUrl !== item.ticketUrl) {
+                     secondaryButton = `
+                        <a href="${item.officialUrl}" target="_blank" class="text-xs text-gray-500 hover:text-indigo-600 underline decoration-dotted mt-2 inline-block">
+                            <i class="fa-solid fa-external-link-alt mr-1"></i>公式サイトで詳細を見る
+                        </a>`;
+                }
+
+                // Badges
+                let badges = '';
+                if (item.important) badges += `<span class="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded mr-1 font-bold">⚠️ ${item.important}</span>`;
+                if (item.warning) badges += `<span class="bg-orange-100 text-orange-700 text-xs px-2 py-0.5 rounded mr-1 font-bold">ℹ️ ${item.warning}</span>`;
+                if (item.recommend) badges += `<span class="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded mr-1 font-bold">💡 ${item.recommend}</span>`;
+
+                const html = `
+                    <div class="bg-white rounded-xl card-shadow p-5 border-l-4 ${isPrague ? 'border-purple-500' : 'border-teal-500'} relative overflow-hidden">
+                        <!-- City Indicator (Watermark style) -->
+                        <div class="absolute top-0 right-0 text-6xl opacity-5 font-black pointer-events-none -mt-2 -mr-2 select-none">
+                            ${cityBadge}
+                        </div>
+
+                        <div class="relative z-10">
+                            <div class="flex justify-between items-start mb-1">
+                                <span class="text-xs font-bold uppercase tracking-wider ${cityColor} bg-white bg-opacity-80 rounded px-1">${item.city}</span>
+                            </div>
+                            
+                            <h2 class="text-lg font-bold text-gray-800 leading-tight mb-1">${item.name}</h2>
+                            <p class="text-xs text-gray-400 mb-3 font-medium">${item.localName}</p>
+
+                            <div class="mb-3">
+                                ${badges}
+                            </div>
+
+                            <div class="bg-gray-50 rounded-lg p-3 mb-4 text-sm border border-gray-100">
+                                <div class="flex items-start mb-1">
+                                    <i class="fa-solid fa-tag text-gray-400 mt-1 mr-2 w-4 text-center"></i>
+                                    <span class="text-gray-700 font-medium">${item.price}</span>
+                                </div>
+                                ${item.studentPrice ? `
+                                <div class="flex items-start">
+                                    <i class="fa-solid fa-graduation-cap text-gray-400 mt-1 mr-2 w-4 text-center"></i>
+                                    <span class="text-gray-600 text-xs mt-0.5">${item.studentPrice}</span>
+                                </div>` : ''}
+                                ${item.note ? `
+                                <div class="flex items-start mt-1 border-t border-gray-200 pt-1">
+                                    <i class="fa-solid fa-circle-exclamation text-orange-400 mt-1 mr-2 w-4 text-center"></i>
+                                    <span class="text-orange-600 text-xs mt-0.5 font-bold">${item.note}</span>
+                                </div>` : ''}
+                            </div>
+
+                            ${mainButton}
+                            
+                            <div class="text-center">
+                                ${secondaryButton}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+        }
+
+        function filterCity(city) {
+            // Update Tab UI
+            ['all', 'prague', 'vienna'].forEach(c => {
+                const btn = document.getElementById(`tab-${c.toLowerCase()}`);
+                if (c.toLowerCase() === city.toLowerCase()) {
+                    btn.classList.remove('text-gray-500', 'bg-transparent');
+                    btn.classList.add('bg-white', 'text-indigo-600', 'shadow-sm', 'font-bold');
+                    btn.classList.remove('font-medium');
+                } else {
+                    btn.classList.add('text-gray-500', 'font-medium', 'bg-transparent');
+                    btn.classList.remove('bg-white', 'text-indigo-600', 'shadow-sm', 'font-bold');
+                }
+            });
+            
+            renderAttractions(city);
+        }
+
+        // Initial Render
+        renderAttractions('all');
+
+    </script>
+</body>
+</html>

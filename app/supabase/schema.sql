@@ -22,6 +22,7 @@ CREATE TABLE schedules (
   address TEXT,
   tag TEXT[],
   memo TEXT,
+  url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -29,7 +30,7 @@ CREATE TABLE schedules (
 CREATE TABLE transactions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   amount NUMERIC NOT NULL,
-  currency TEXT CHECK (currency IN ('EUR', 'JPY')) NOT NULL,
+  currency TEXT CHECK (currency IN ('EUR', 'JPY', 'CZK')) NOT NULL,
   paid_by UUID REFERENCES profiles(id) NOT NULL,
   description TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
@@ -98,6 +99,15 @@ INSERT INTO profiles (name) VALUES ('青山'), ('浅田'), ('市川'), ('鬼澤'
 INSERT INTO tags (name) VALUES 
   ('sightseeing'),
   ('food'),
+
+-- ============================================================
+-- Migration: Add CZK currency support & URL field to schedules
+-- Run these on existing Supabase databases:
+-- ============================================================
+-- ALTER TABLE transactions DROP CONSTRAINT IF EXISTS transactions_currency_check;
+-- ALTER TABLE transactions ADD CONSTRAINT transactions_currency_check CHECK (currency IN ('EUR', 'JPY', 'CZK'));
+-- ALTER TABLE schedules ADD COLUMN IF NOT EXISTS url TEXT;
+-- ============================================================
   ('move'),
   ('Munich'),
   ('Vienna'),

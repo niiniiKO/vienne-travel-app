@@ -25,7 +25,7 @@ interface TransactionFormProps {
 export function TransactionForm({ className, profiles = [], onSuccess, onDelete, onUpdate, initialData }: TransactionFormProps) {
     const { currentUser } = useUser();
     const [amount, setAmount] = React.useState(initialData?.amount?.toString() || "");
-    const [currency, setCurrency] = React.useState<"EUR" | "JPY">(initialData?.currency || "EUR");
+    const [currency, setCurrency] = React.useState<"EUR" | "JPY" | "CZK">(initialData?.currency || "EUR");
     const [description, setDescription] = React.useState(initialData?.description || "");
     const [paidBy, setPaidBy] = React.useState(initialData?.paid_by || currentUser?.id || (profiles[0]?.id ?? ""));
     const [forWhom, setForWhom] = React.useState<string[]>(initialData?.forWhom || (profiles.length > 0 ? profiles.map(u => u.id) : []));
@@ -97,13 +97,25 @@ export function TransactionForm({ className, profiles = [], onSuccess, onDelete,
                             type="button"
                             onClick={() => setCurrency("EUR")}
                             className={cn(
-                                "flex-1 px-4 py-2 text-sm font-medium border first:rounded-l-md last:rounded-r-md focus:z-10 focus:ring-2 focus:ring-primary",
+                                "flex-1 px-4 py-2 text-sm font-medium border first:rounded-l-md focus:z-10 focus:ring-2 focus:ring-primary",
                                 currency === "EUR"
                                     ? "bg-primary text-primary-foreground border-primary"
                                     : "bg-background text-foreground border-input hover:bg-accent"
                             )}
                         >
                             EUR
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setCurrency("CZK")}
+                            className={cn(
+                                "flex-1 px-4 py-2 text-sm font-medium border-t border-b border-r focus:z-10 focus:ring-2 focus:ring-primary",
+                                currency === "CZK"
+                                    ? "bg-primary text-primary-foreground border-primary"
+                                    : "bg-background text-foreground border-input hover:bg-accent"
+                            )}
+                        >
+                            CZK
                         </button>
                         <button
                             type="button"

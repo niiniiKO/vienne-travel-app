@@ -4,10 +4,9 @@ import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Transaction, Profile } from "@/types/database";
 import { cn } from "@/lib/utils";
+import { EXCHANGE_RATES } from "@/lib/utils";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-export const EXCHANGE_RATE = 180; // 1 EUR = 180 JPY
 
 // 前回の旅行からの繰越残高 (JPY)
 // プラス = 払いすぎ（返してもらう側）、マイナス = 不足（払う側）
@@ -39,7 +38,7 @@ export function BalanceBoard({ transactions, profiles }: BalanceBoardProps) {
 
     // --- Calculation Logic ---
 
-    // 1. Totals
+    // 1. Totals per currency
     const totalEUR = transactions
         .filter((t) => t.currency === "EUR")
         .reduce((sum, t) => sum + Number(t.amount), 0);
@@ -48,12 +47,17 @@ export function BalanceBoard({ transactions, profiles }: BalanceBoardProps) {
         .filter((t) => t.currency === "JPY")
         .reduce((sum, t) => sum + Number(t.amount), 0);
 
+    const totalCZK = transactions
+        .filter((t) => t.currency === "CZK")
+        .reduce((sum, t) => sum + Number(t.amount), 0);
+
     // Approximate Total in EUR
-    const totalApproxEUR = totalEUR + (totalJPY / EXCHANGE_RATE);
+    const totalApproxEUR = totalEUR + (totalJPY / EXCHANGE_RATES.EUR_JPY) + (totalCZK / EXCHANGE_RATES.EUR_CZK);
     const perPersonApproxEUR = totalApproxEUR / profiles.length;
 
     const perPersonEUR = totalEUR / profiles.length;
     const perPersonJPY = totalJPY / profiles.length;
+    const perPersonCZK = totalCZK / profiles.length;
 
     // 2. Balances per User
     const balances = profiles.map((user) => {
@@ -65,19 +69,25 @@ export function BalanceBoard({ transactions, profiles }: BalanceBoardProps) {
             .filter((t) => t.paid_by === user.id && t.currency === "JPY")
             .reduce((sum, t) => sum + Number(t.amount), 0);
 
+        const paidCZK = transactions
+            .filter((t) => t.paid_by === user.id && t.currency === "CZK")
+            .reduce((sum, t) => sum + Number(t.amount), 0);
+
         const diffEUR = paidEUR - perPersonEUR;
         const diffJPY = paidJPY - perPersonJPY;
+        const diffCZK = paidCZK - perPersonCZK;
 
         // 前回旅行からの繰越残高を追加
         const initialBalanceJPY = INITIAL_BALANCE_JPY[user.name] || 0;
 
         // Approximate Difference in EUR (繰越残高を含む)
-        const diffApproxEUR = diffEUR + ((diffJPY + initialBalanceJPY) / EXCHANGE_RATE);
+        const diffApproxEUR = diffEUR + ((diffJPY + initialBalanceJPY) / EXCHANGE_RATES.EUR_JPY) + (diffCZK / EXCHANGE_RATES.EUR_CZK);
 
         return {
             name: user.name,
             diffEUR,
             diffJPY,
+            diffCZK,
             initialBalanceJPY,
             diffApproxEUR,
         };
@@ -92,7 +102,7 @@ export function BalanceBoard({ transactions, profiles }: BalanceBoardProps) {
                         Approximate Balance (EUR)
                     </CardTitle>
                     <p className="text-xs text-center text-muted-foreground">
-                        Rate: 1 EUR = {EXCHANGE_RATE} JPY
+                        Rate: 1 EUR = {EXCHANGE_RATES.EUR_JPY} JPY / {EXCHANGE_RATES.EUR_CZK} CZK
                     </p>
                 </CardHeader>
                 <CardContent className="pt-4">
@@ -126,7 +136,7 @@ export function BalanceBoard({ transactions, profiles }: BalanceBoardProps) {
                         </>
                     ) : (
                         <>
-                            <ChevronDown className="h-4 w-4 mr-1" /> Show Details (EUR / JPY)
+                            <ChevronDown className="h-4 w-4 mr-1" /> Show Details (EUR / CZK / JPY)
                         </>
                     )}
                 </Button>
@@ -150,6 +160,28 @@ export function BalanceBoard({ transactions, profiles }: BalanceBoardProps) {
                                             b.diffEUR > 0 ? "text-green-600" : b.diffEUR < 0 ? "text-red-600" : "text-muted-foreground"
                                         )}>
                                             {b.diffEUR > 0 ? "+" : ""}{b.diffEUR.toFixed(0)}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="bg-card/50">
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-lg text-muted-foreground">Balance (CZK Only)</CardTitle>
+                            <p className="text-xs text-muted-foreground">Total: {totalCZK.toLocaleString()} Kč</p>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-2 gap-4">
+                                {balances.map((b) => (
+                                    <div key={b.name} className="flex justify-between items-center text-sm border-b pb-1 last:border-0 last:pb-0">
+                                        <span className="font-medium">{b.name}</span>
+                                        <span className={cn(
+                                            "font-mono",
+                                            b.diffCZK > 0 ? "text-green-600" : b.diffCZK < 0 ? "text-red-600" : "text-muted-foreground"
+                                        )}>
+                                            {b.diffCZK > 0 ? "+" : ""}{b.diffCZK.toLocaleString()}
                                         </span>
                                     </div>
                                 ))}

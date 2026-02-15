@@ -27,13 +27,14 @@ export interface Schedule {
     address?: string | null
     tag?: string[] | null
     memo?: string | null
+    url?: string | null
     created_at: string
 }
 
 export interface Transaction {
     id: string
     amount: number
-    currency: 'EUR' | 'JPY'
+    currency: 'EUR' | 'JPY' | 'CZK'
     paid_by: string
     description?: string | null
     created_at: string

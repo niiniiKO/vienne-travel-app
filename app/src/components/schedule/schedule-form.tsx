@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { Schedule } from "@/types/database";
-import { Trash2, ChevronDown, ChevronUp, MapPin, AlignLeft, Globe } from "lucide-react";
+import { Trash2, ChevronDown, ChevronUp, MapPin, AlignLeft, Globe, Link as LinkIcon } from "lucide-react";
 import { useUser } from "@/contexts/user-context";
 
 interface ScheduleFormProps {
@@ -132,6 +132,7 @@ export function ScheduleForm({ className, onSuccess, onDelete, onUpdate, initial
     const [address, setAddress] = React.useState(initialData?.address || "");
     const [selectedTags, setSelectedTags] = React.useState<string[]>(initialData?.tag || []);
     const [memo, setMemo] = React.useState(initialData?.memo || "");
+    const [url, setUrl] = React.useState(initialData?.url || "");
 
     // Validate dates
     React.useEffect(() => {
@@ -206,6 +207,7 @@ export function ScheduleForm({ className, onSuccess, onDelete, onUpdate, initial
             address: address || null,
             tag: selectedTags.length > 0 ? selectedTags : null,
             memo: finalMemo || null,
+            url: url || null,
         };
 
         // Only include id and created_at for existing schedules
@@ -437,6 +439,19 @@ export function ScheduleForm({ className, onSuccess, onDelete, onUpdate, initial
                                 placeholder="e.g., Wollzeile 5, 1010 Wien"
                                 value={address}
                                 onChange={(e) => setAddress(e.target.value)}
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium flex items-center gap-2">
+                                <LinkIcon className="h-3.5 w-3.5" />
+                                URL
+                            </label>
+                            <Input
+                                type="url"
+                                placeholder="https://..."
+                                value={url}
+                                onChange={(e) => setUrl(e.target.value)}
                             />
                         </div>
 

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Schedule } from "@/types/database";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { MapPin, Utensils, Train, Info, Copy, Check, Plane } from "lucide-react";
+import { MapPin, Utensils, Train, Info, Copy, Check, Plane, ExternalLink } from "lucide-react";
 
 // Extended type for display with date-crossing info
 interface DisplaySchedule extends Schedule {
@@ -176,6 +176,23 @@ export function Timeline({ items, onEdit }: TimelineProps) {
                                                         <span className="line-clamp-1">{item.address}</span>
                                                     </a>
                                                     <CopyButton text={item.address} />
+                                                </div>
+                                            )}
+                                            {item.url && (
+                                                <div className="flex items-center gap-1 mt-0.5">
+                                                    <a
+                                                        href={item.url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-sm text-primary/80 hover:text-primary flex items-center gap-1 underline underline-offset-2"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                                                        <span className="line-clamp-1">
+                                                            {(() => { try { return new URL(item.url).hostname; } catch { return item.url; } })()}
+                                                        </span>
+                                                    </a>
+                                                    <CopyButton text={item.url} />
                                                 </div>
                                             )}
                                             {item.memo && (

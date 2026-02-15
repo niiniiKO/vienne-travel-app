@@ -3,6 +3,7 @@
 import { Transaction, Profile } from "@/types/database";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { getCurrencySymbol } from "@/lib/utils";
 import { History } from "lucide-react";
 
 interface TransactionWithCarryOver extends Transaction {
@@ -48,7 +49,7 @@ export function TransactionList({ transactions, profiles, onEdit }: TransactionL
                             </div>
                             <div className="text-right">
                                 <span className="font-mono text-lg font-medium text-primary">
-                                    {t.currency === "EUR" ? "€" : "¥"}{Number(t.amount).toLocaleString()}
+                                    {getCurrencySymbol(t.currency)}{Number(t.amount).toLocaleString()}
                                 </span>
                             </div>
                         </CardContent>

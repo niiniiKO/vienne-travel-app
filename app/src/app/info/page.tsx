@@ -89,6 +89,12 @@ export default function InfoPage() {
             href: "/info/guide/prague",
             emoji: "🇨🇿",
         },
+        {
+            title: "チケット購入ガイド",
+            description: "観光地チケット・公式リンク集",
+            href: "/info/guide/tickets",
+            emoji: "🎫",
+        },
     ];
 
     return (
