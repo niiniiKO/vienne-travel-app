@@ -26,6 +26,24 @@ const formatTimeInCET = (isoString: string): string => {
     }).format(new Date(isoString));
 };
 
+// Generate map URL based on platform
+function getMapUrl(address: string): string {
+    const encoded = encodeURIComponent(address);
+    if (typeof navigator !== "undefined") {
+        const ua = navigator.userAgent;
+        // iOS: use Apple Maps URL
+        if (/iPhone|iPad|iPod/i.test(ua)) {
+            return `https://maps.apple.com/?q=${encoded}`;
+        }
+        // Android: use geo URI
+        if (/Android/i.test(ua)) {
+            return `geo:0,0?q=${encoded}`;
+        }
+    }
+    // Fallback: Google Maps (works everywhere)
+    return `https://www.google.com/maps/search/?api=1&query=${encoded}`;
+}
+
 // Copy button component with feedback
 function CopyButton({ text }: { text: string }) {
     const [copied, setCopied] = useState(false);
@@ -168,7 +186,7 @@ export function Timeline({ items, onEdit }: TimelineProps) {
                                             {item.address && (
                                                 <div className="flex items-center gap-1 mt-0.5">
                                                     <a
-                                                        href={`geo:0,0?q=${encodeURIComponent(item.address)}`}
+                                                        href={getMapUrl(item.address)}
                                                         className="text-sm text-primary/80 hover:text-primary flex items-center gap-1 underline underline-offset-2"
                                                         onClick={(e) => e.stopPropagation()}
                                                     >
