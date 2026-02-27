@@ -51,9 +51,9 @@ export function BalanceBoard({ transactions, profiles }: BalanceBoardProps) {
         .filter((t) => t.currency === "CZK")
         .reduce((sum, t) => sum + Number(t.amount), 0);
 
-    // Approximate Total in EUR
-    const totalApproxEUR = totalEUR + (totalJPY / EXCHANGE_RATES.EUR_JPY) + (totalCZK / EXCHANGE_RATES.EUR_CZK);
-    const perPersonApproxEUR = totalApproxEUR / profiles.length;
+    // Approximate Total in JPY
+    const totalApproxJPY = (totalEUR * EXCHANGE_RATES.EUR_JPY) + totalJPY + (totalCZK * (EXCHANGE_RATES.EUR_JPY / EXCHANGE_RATES.EUR_CZK));
+    const perPersonApproxJPY = totalApproxJPY / profiles.length;
 
     const perPersonEUR = totalEUR / profiles.length;
     const perPersonJPY = totalJPY / profiles.length;
@@ -80,8 +80,8 @@ export function BalanceBoard({ transactions, profiles }: BalanceBoardProps) {
         // 前回旅行からの繰越残高を追加
         const initialBalanceJPY = INITIAL_BALANCE_JPY[user.name] || 0;
 
-        // Approximate Difference in EUR (繰越残高を含む)
-        const diffApproxEUR = diffEUR + ((diffJPY + initialBalanceJPY) / EXCHANGE_RATES.EUR_JPY) + (diffCZK / EXCHANGE_RATES.EUR_CZK);
+        // Approximate Difference in JPY (繰越残高を含む)
+        const diffApproxJPY = (diffEUR * EXCHANGE_RATES.EUR_JPY) + (diffJPY + initialBalanceJPY) + (diffCZK * (EXCHANGE_RATES.EUR_JPY / EXCHANGE_RATES.EUR_CZK));
 
         return {
             name: user.name,
@@ -89,7 +89,7 @@ export function BalanceBoard({ transactions, profiles }: BalanceBoardProps) {
             diffJPY,
             diffCZK,
             initialBalanceJPY,
-            diffApproxEUR,
+            diffApproxJPY,
         };
     });
 
@@ -99,10 +99,10 @@ export function BalanceBoard({ transactions, profiles }: BalanceBoardProps) {
             <Card className="bg-card shadow-sm border-gold/50">
                 <CardHeader className="pb-2 border-b border-border/50 bg-secondary/10">
                     <CardTitle className="text-xl font-serif text-center text-primary">
-                        Approximate Balance (EUR)
+                        Approximate Balance (JPY)
                     </CardTitle>
                     <p className="text-xs text-center text-muted-foreground">
-                        Rate: 1 EUR = {EXCHANGE_RATES.EUR_JPY} JPY / {EXCHANGE_RATES.EUR_CZK} CZK
+                        Rate: 1 EUR = {EXCHANGE_RATES.EUR_JPY} JPY / 1 CZK = {(EXCHANGE_RATES.EUR_JPY / EXCHANGE_RATES.EUR_CZK).toFixed(1)} JPY
                     </p>
                 </CardHeader>
                 <CardContent className="pt-4">
@@ -112,9 +112,9 @@ export function BalanceBoard({ transactions, profiles }: BalanceBoardProps) {
                                 <span className="font-bold">{b.name}</span>
                                 <span className={cn(
                                     "font-mono text-lg font-medium",
-                                    b.diffApproxEUR > 0 ? "text-green-700" : b.diffApproxEUR < 0 ? "text-red-700" : "text-muted-foreground"
+                                    b.diffApproxJPY > 0 ? "text-green-700" : b.diffApproxJPY < 0 ? "text-red-700" : "text-muted-foreground"
                                 )}>
-                                    {b.diffApproxEUR > 0 ? "+" : ""}{b.diffApproxEUR.toFixed(2)} €
+                                    {b.diffApproxJPY > 0 ? "+" : ""}¥{Math.round(b.diffApproxJPY).toLocaleString()}
                                 </span>
                             </div>
                         ))}
